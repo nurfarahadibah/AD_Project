@@ -1,0 +1,67 @@
+@model AspnetCoreMvcFull.Models.ViewModels.CreateFolderViewModel
+
+<div class="modal fade" id="createFolderModal" tabindex="-1">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<form asp-action="CreateFolder" method="post">
+				<div class="modal-header">
+					<h5 class="modal-title">Create New Folder</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<!-- Basic Info Section -->
+					<div class="row mb-3">
+						<div class="col-md-6">
+							<label asp-for="FolderName" class="form-label"></label>
+							<input asp-for="FolderName" class="form-control"
+								   placeholder="e.g., SOX Compliance Q1 2024">
+							<span asp-validation-for="FolderName" class="text-danger"></span>
+						</div>
+						<div class="col-md-6">
+							<label asp-for="ComplianceType" class="form-label"></label>
+							<select asp-for="ComplianceType" class="form-select"
+									asp-items="@(new SelectList(Model.ComplianceTypes))">
+								<option value="">Select compliance framework</option>
+							</select>
+							<span asp-validation-for="ComplianceType" class="text-danger"></span>
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label asp-for="Description" class="form-label"></label>
+						<textarea asp-for="Description" class="form-control" rows="3"
+								  placeholder="Describe the purpose and scope..."></textarea>
+					</div>
+
+					<!-- User Assignment Section -->
+					<div class="card">
+						<div class="card-header">
+							<h6 class="mb-0">Assign Users</h6>
+						</div>
+						<div class="card-body">
+							<div class="row">
+								@for (int i = 0; i < Model.AvailableUsers.Count; i++)
+								{
+									<div class="col-md-6 mb-2">
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox"
+												   name="AssignedUsers" value="@Model.AvailableUsers[i]"
+												   id="user_@i">
+											<label class="form-check-label" for="user_@i">
+												@Model.AvailableUsers[i]
+											</label>
+										</div>
+									</div>
+								}
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-primary">Create Folder</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

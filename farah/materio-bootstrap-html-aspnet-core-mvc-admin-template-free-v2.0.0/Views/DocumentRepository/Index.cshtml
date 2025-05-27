@@ -1,0 +1,85 @@
+@model AspnetCoreMvcFull.Models.ViewModels.DocumentRepositoryViewModel
+@using AspnetCoreMvcFull.Models.ViewModels
+@{
+	ViewData["Title"] = "Document Repository";
+}
+
+<div class="container-fluid">
+	<!-- Header -->
+	<div class="row mb-4">
+		<div class="col-md-8">
+			<h1 class="display-4">Document Repository</h1>
+			<p class="text-muted">Manage audit documents and compliance folders</p>
+		</div>
+		<div class="col-md-4 text-end">
+			<button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#uploadModal">
+				<i class="fas fa-upload"></i> Upload Document
+			</button>
+			<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+				<i class="fas fa-folder-plus"></i> Create Folder
+			</button>
+		</div>
+	</div>
+
+	<!-- Stats Cards -->
+	<div class="row mb-4">
+		<div class="col-md-3">
+			<div class="card">
+				<div class="card-body">
+					<div class="d-flex justify-content-between">
+						<div>
+							<h6 class="card-title text-muted">Total Folders</h6>
+							<h2 class="mb-0">@Model.Stats.TotalFolders</h2>
+						</div>
+						<i class="fas fa-folder fa-2x text-primary"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Repeat for other stats -->
+	</div>
+
+	<!-- Search and Filters -->
+	<div class="row mb-4">
+		<div class="col-md-8">
+			<form method="get" asp-action="Index">
+				<div class="input-group">
+					<span class="input-group-text"><i class="fas fa-search"></i></span>
+					<input type="text" class="form-control" name="searchQuery"
+						   value="@Model.SearchQuery" placeholder="Search folders and documents...">
+					<button class="btn btn-outline-secondary" type="submit">Search</button>
+				</div>
+			</form>
+		</div>
+		<div class="col-md-4">
+			<select class="form-select" onchange="filterFolders(this.value)">
+				<option value="all">All Types</option>
+				<option value="SOX (Sarbanes-Oxley)">SOX</option>
+				<option value="ISO 27001">ISO 27001</option>
+				<!-- Add other options -->
+			</select>
+		</div>
+	</div>
+
+	<!-- Folders Grid -->
+	<div class="row">
+		@foreach (var folder in Model.Folders)
+		{
+			<div class="col-md-4 mb-3">
+				<div class="card">
+					<div class="card-body">
+						<h5 class="card-title">@folder.Name</h5>
+						<p class="card-text">@folder.Description</p>
+						<span class="badge bg-primary">@folder.ComplianceType</span>
+						<div class="mt-2">
+							<small class="text-muted">@folder.Documents.Count documents</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+</div>
+
+<!-- Create Folder Modal -->
+@await Html.PartialAsync("_CreateFolderModal", new CreateFolderViewModel())
