@@ -29,6 +29,12 @@
                     <div>Dashboards</div>
                 </a>
             </li>
+			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
+				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
+					<div>Filing and Document Repository</div>
+				</a>
+			</li>
             <li class='menu-item@(currentPage.StartsWith("/LayoutExamples") ? " active open" : "")'>
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon tf-icons ri-layout-2-line"></i>
