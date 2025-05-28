@@ -1,4 +1,5 @@
 using AspnetCoreMvcFull.Models;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace AspnetCoreMvcFull.Data
@@ -11,17 +12,34 @@ namespace AspnetCoreMvcFull.Data
 
     public DbSet<ComplianceFolder> ComplianceFolders { get; set; }
     public DbSet<Document> Documents { get; set; }
+    public DbSet<RequiredDocument> RequiredDocuments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-      modelBuilder.Entity<ComplianceFolder>()
-          .Property(e => e.AssignedUsers)
-          .HasConversion(
-              v => string.Join(',', v),
-              v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-          );
 
       base.OnModelCreating(modelBuilder);
+      // Configure relationships
+      modelBuilder.Entity<Document>()
+          .HasOne(d => d.ComplianceFolder)
+          .WithMany(f => f.Documents)
+          .HasForeignKey(d => d.ComplianceFolderId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+     
+
+      modelBuilder.Entity<RequiredDocument>()
+          .HasOne(rd => rd.ComplianceFolder)
+          .WithMany(f => f.RequiredDocuments)
+          .HasForeignKey(rd => rd.ComplianceFolderId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+      modelBuilder.Entity<RequiredDocument>()
+          .HasOne(rd => rd.Document)
+          .WithMany()
+          .HasForeignKey(rd => rd.DocumentId)
+          .OnDelete(DeleteBehavior.NoAction);
+
+      
     }
   }
 }

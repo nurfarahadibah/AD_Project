@@ -4,6 +4,7 @@ using AspnetCoreMvcFull.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AspnetCoreMvcFull.Migrations.AppDb
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250528102558_init")]
+    partial class init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,6 +119,37 @@ namespace AspnetCoreMvcFull.Migrations.AppDb
                     b.ToTable("Documents");
                 });
 
+            modelBuilder.Entity("AspnetCoreMvcFull.Models.FolderUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ComplianceFolderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplianceFolderId");
+
+                    b.ToTable("FolderUsers");
+                });
+
             modelBuilder.Entity("AspnetCoreMvcFull.Models.RequiredDocument", b =>
                 {
                     b.Property<int>("Id")
@@ -174,6 +208,17 @@ namespace AspnetCoreMvcFull.Migrations.AppDb
                     b.Navigation("ComplianceFolder");
                 });
 
+            modelBuilder.Entity("AspnetCoreMvcFull.Models.FolderUser", b =>
+                {
+                    b.HasOne("AspnetCoreMvcFull.Models.ComplianceFolder", "ComplianceFolder")
+                        .WithMany("AssignedUsers")
+                        .HasForeignKey("ComplianceFolderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComplianceFolder");
+                });
+
             modelBuilder.Entity("AspnetCoreMvcFull.Models.RequiredDocument", b =>
                 {
                     b.HasOne("AspnetCoreMvcFull.Models.ComplianceFolder", "ComplianceFolder")
@@ -194,6 +239,8 @@ namespace AspnetCoreMvcFull.Migrations.AppDb
 
             modelBuilder.Entity("AspnetCoreMvcFull.Models.ComplianceFolder", b =>
                 {
+                    b.Navigation("AssignedUsers");
+
                     b.Navigation("Documents");
 
                     b.Navigation("RequiredDocuments");

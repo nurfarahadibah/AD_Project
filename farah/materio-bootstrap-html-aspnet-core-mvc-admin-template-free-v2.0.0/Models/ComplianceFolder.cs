@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace AspnetCoreMvcFull.Models
@@ -7,19 +9,44 @@ namespace AspnetCoreMvcFull.Models
     public int Id { get; set; }
 
     [Required]
-    [StringLength(100)]
-    public string Name { get; set; } = string.Empty;
+    [StringLength(200)]
+    public string Name { get; set; }
 
     [Required]
-    public string ComplianceType { get; set; } = string.Empty;
+    [StringLength(100)]
+    public string ComplianceType { get; set; }
 
-    [StringLength(500)]
+    [StringLength(1000)]
     public string Description { get; set; } = string.Empty;
 
-    public List<string> AssignedUsers { get; set; } = new List<string>();
+    public DateTime CreatedDate { get; set; }
+    public DateTime? LastModified { get; set; }
 
-    public DateTime CreatedDate { get; set; } = DateTime.Now;
+    [StringLength(100)]
+    public string CreatedBy { get; set; }
 
-    public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
+    public FolderStatus Status { get; set; }
+
+    // Navigation properties
+    public virtual ICollection<Document> Documents { get; set; }
+    public virtual ICollection<RequiredDocument> RequiredDocuments { get; set; }
+
+    public ComplianceFolder()
+    {
+      Documents = new HashSet<Document>();
+      RequiredDocuments = new HashSet<RequiredDocument>();
+      CreatedDate = DateTime.Now;
+      Status = FolderStatus.Active;
+      Name = string.Empty; // <--- Initialize Name here
+      Description = string.Empty; // Also initialize Description if it's non-nullable
+    }
+  }
+
+  public enum FolderStatus
+  {
+    Active,
+    Archived,
+    InReview,
+    Completed
   }
 }

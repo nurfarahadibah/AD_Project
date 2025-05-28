@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace AspnetCoreMvcFull.Models.ViewModels
@@ -5,30 +6,36 @@ namespace AspnetCoreMvcFull.Models.ViewModels
   public class CreateFolderViewModel
   {
     [Required]
+    [StringLength(200)]
     [Display(Name = "Folder Name")]
-    public string FolderName { get; set; } = string.Empty;
+    public string Name { get; set; }
 
     [Required]
     [Display(Name = "Compliance Type")]
-    public string ComplianceType { get; set; } = string.Empty;
+    public string ComplianceType { get; set; }
 
-    [Display(Name = "Description")]
+    [StringLength(1000)]
+    public string Description { get; set; }
+
+
+    [Display(Name = "Required Documents")]
+    public List<RequiredDocumentViewModel> RequiredDocuments { get; set; }
+
+    public CreateFolderViewModel()
+    {
+      RequiredDocuments = new List<RequiredDocumentViewModel>();
+    }
+  }
+
+  public class RequiredDocumentViewModel
+  {
+    [Required]
+    [StringLength(200)]
+    public string DocumentName { get; set; } = string.Empty; 
+
+    [StringLength(1000)]
     public string Description { get; set; } = string.Empty;
 
-    [Display(Name = "Assigned Users")]
-    public List<string> AssignedUsers { get; set; } = new List<string>();
-
-    public List<string> AvailableUsers { get; set; } = new List<string>
-        {
-            "John Doe", "Jane Smith", "Mike Johnson",
-            "Sarah Wilson", "Tom Brown", "Alice Cooper", "Bob Davis"
-        };
-
-    public List<string> ComplianceTypes { get; set; } = new List<string>
-        {
-            "SOX (Sarbanes-Oxley)", "ISO 27001", "GDPR",
-            "Financial Audit", "Security Compliance",
-            "Quality Management", "Risk Management", "Custom"
-        };
+    public bool IsRequired { get; set; } = true;
   }
 }

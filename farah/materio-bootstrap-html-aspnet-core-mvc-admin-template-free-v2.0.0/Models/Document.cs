@@ -1,4 +1,6 @@
+using System;
 using System.ComponentModel.DataAnnotations;
+using AspnetCoreMvcFull.Models;
 
 namespace AspnetCoreMvcFull.Models
 {
@@ -7,18 +9,45 @@ namespace AspnetCoreMvcFull.Models
     public int Id { get; set; }
 
     [Required]
-    public string FileName { get; set; } = string.Empty;
+    [StringLength(200)]
+    public string FileName { get; set; }
 
-    public string FilePath { get; set; } = string.Empty;
+    [Required]
+    [StringLength(500)]
+    public string FilePath { get; set; }
+
+    [StringLength(100)]
+    public string FileType { get; set; }
 
     public long FileSize { get; set; }
 
-    public string ContentType { get; set; } = string.Empty;
+    [StringLength(1000)]
+    public string Description { get; set; }
 
-    public DateTime UploadDate { get; set; } = DateTime.Now;
+    public DateTime UploadDate { get; set; }
 
+    [StringLength(100)]
+    public string UploadedBy { get; set; }
+
+    public DocumentStatus Status { get; set; }
+
+    // Foreign key
     public int ComplianceFolderId { get; set; }
+    public virtual ComplianceFolder ComplianceFolder { get; set; }
 
-    public virtual ComplianceFolder? ComplianceFolder { get; set; } 
+    public Document()
+    {
+      UploadDate = DateTime.Now;
+      Status = DocumentStatus.Active;
+    }
+  }
+
+  public enum DocumentStatus
+  {
+    Active,
+    Archived,
+    PendingReview,
+    Approved,
+    Rejected
   }
 }
