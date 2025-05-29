@@ -1,6 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using AspnetCoreMvcFull.Models;
+// using AspnetCoreMvcFull.Models; // Already in namespace
 
 namespace AspnetCoreMvcFull.Models
 {
@@ -22,7 +22,7 @@ namespace AspnetCoreMvcFull.Models
     public long FileSize { get; set; }
 
     [StringLength(1000)]
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     public DateTime UploadDate { get; set; }
 
@@ -31,9 +31,15 @@ namespace AspnetCoreMvcFull.Models
 
     public DocumentStatus Status { get; set; }
 
-    // Foreign key
+    // Foreign key to ComplianceFolder (already exists)
     public int ComplianceFolderId { get; set; }
     public virtual ComplianceFolder ComplianceFolder { get; set; }
+
+    // NEW: Foreign key to RequiredDocument
+    // A Document can optionally fulfill a specific RequiredDocument
+    // Use int? to make it nullable, as not all uploaded documents might fulfill a *specific* requirement.
+    public int? RequiredDocumentId { get; set; }
+    public virtual RequiredDocument? RequiredDocument { get; set; } // Navigation property
 
     public Document()
     {

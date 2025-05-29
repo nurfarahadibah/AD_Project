@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic; // Add this using statement for ICollection
 using System.ComponentModel.DataAnnotations;
-using AspnetCoreMvcFull.Models;
+// using AspnetCoreMvcFull.Models; // Already in namespace
 
 namespace AspnetCoreMvcFull.Models
 {
@@ -21,15 +22,18 @@ namespace AspnetCoreMvcFull.Models
     public DateTime? SubmissionDate { get; set; }
 
     [StringLength(100)]
-    public string SubmittedBy { get; set; }
+    public string? SubmittedBy { get; set; } // Make it nullable if a document isn't "submitted" until it's linked
 
-    // Foreign key
+    // Foreign key to ComplianceFolder (already exists)
     public int ComplianceFolderId { get; set; }
     public virtual ComplianceFolder ComplianceFolder { get; set; }
 
-    // Optional reference to actual document
-    public int? DocumentId { get; set; }
-    public virtual Document Document { get; set; }
+    // REMOVE: public int? DocumentId { get; set; } and public virtual Document Document { get; set; }
+
+    // NEW: Collection of Documents that fulfill this RequiredDocument
+    // One RequiredDocument can have many Documents.
+    public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
+
 
     public RequiredDocument()
     {

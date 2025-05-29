@@ -1,5 +1,7 @@
-using Microsoft.AspNetCore.Http;
+// Models/ViewModels/DocumentUploadViewModel.cs
+using Microsoft.AspNetCore.Http; // For IFormFile
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic; // For List
 
 namespace AspnetCoreMvcFull.Models.ViewModels
 {
@@ -7,13 +9,18 @@ namespace AspnetCoreMvcFull.Models.ViewModels
   {
     [Required]
     public int ComplianceFolderId { get; set; }
+    public string FolderName { get; set; } // Display purposes
 
-    [Required]
+    [Required(ErrorMessage = "Please select a file.")]
     public IFormFile File { get; set; }
 
     [StringLength(1000)]
     public string Description { get; set; }
 
-    public string FolderName { get; set; }
+    // NEW: Property to hold the selected RequiredDocumentId
+    public int? SelectedRequiredDocumentId { get; set; }
+
+    // Optional: List for the dropdown in the view (populated by controller)
+    public List<object>? AvailableRequiredDocuments { get; set; }
   }
 }

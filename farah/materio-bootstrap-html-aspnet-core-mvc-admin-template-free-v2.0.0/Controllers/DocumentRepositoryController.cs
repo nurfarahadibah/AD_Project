@@ -121,7 +121,7 @@ namespace AspnetCoreMvcFull.Controllers
       var folder = await _context.ComplianceFolders
           .Include(f => f.Documents)
           .Include(f => f.RequiredDocuments)
-              .ThenInclude(rd => rd.Document)
+              .ThenInclude(rd => rd.Documents)
           .FirstOrDefaultAsync(f => f.Id == id);
 
       if (folder == null)
@@ -132,7 +132,7 @@ namespace AspnetCoreMvcFull.Controllers
       return View(folder);
     }
 
-    [HttpGet]
+    [HttpGet] // This GET action is likely used for the "Upload General Document" button, not the modal
     public async Task<IActionResult> UploadDocument(int folderId)
     {
       var folder = await _context.ComplianceFolders.FindAsync(folderId);
@@ -145,6 +145,9 @@ namespace AspnetCoreMvcFull.Controllers
       {
         ComplianceFolderId = folderId,
         FolderName = folder.Name
+        // If this GET action is used to display a form with a dropdown for RequiredDocuments,
+        // you would need to populate AvailableRequiredDocuments here.
+        // Otherwise, it's fine for a general upload form.
       };
 
       return View(viewModel);
@@ -154,55 +157,105 @@ namespace AspnetCoreMvcFull.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadDocument(DocumentUploadViewModel model)
     {
+      // First, ensure the model is valid and a file was actually uploaded.
+      // 'model.File != null' ensures that the IFormFile was successfully bound from the request.
       if (ModelState.IsValid && model.File != null)
       {
         var folder = await _context.ComplianceFolders.FindAsync(model.ComplianceFolderId);
         if (folder == null)
         {
-          return NotFound();
+          TempData["Error"] = "Compliance folder not found.";
+          return NotFound(); // Or RedirectToAction(nameof(Index))
         }
 
-        // Create uploads directory if it doesn't exist
+        // 1. Handle file storage
+        // Create directory for the folder's uploads if it doesn't exist
         var uploadsPath = Path.Combine(_environment.WebRootPath, "uploads", folder.Id.ToString());
-        Directory.CreateDirectory(uploadsPath);
+        Directory.CreateDirectory(uploadsPath); // Creates all directories in the path if they don't exist
 
-        // Generate unique filename
+        // Generate a unique filename to prevent overwrites and provide a clean file name
         var fileName = Path.GetFileNameWithoutExtension(model.File.FileName);
         var extension = Path.GetExtension(model.File.FileName);
-        var uniqueFileName = $"{fileName}_{DateTime.Now.Ticks}{extension}";
+        var uniqueFileName = $"{fileName}_{DateTime.Now.Ticks}{extension}"; // Appends a timestamp to make it unique
         var filePath = Path.Combine(uploadsPath, uniqueFileName);
 
-        // Save file
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        // Save the file to the server's file system
+        try
         {
-          await model.File.CopyToAsync(stream);
+          using (var stream = new FileStream(filePath, FileMode.Create))
+          {
+            await model.File.CopyToAsync(stream);
+          }
         }
-        string createdByUserName = "System";
-        if (User.Identity != null && User.Identity.Name != null)
+        catch (IOException ex)
         {
-          createdByUserName = User.Identity.Name;
+          // Log the exception (e.g., using a logger like ILogger)
+          Console.WriteLine($"Error saving file: {ex.Message}");
+          ModelState.AddModelError("", "Could not save the file to disk. Please try again.");
+          TempData["Error"] = "Failed to save the document file. Please check server permissions.";
+          // Re-populate model data needed for the view if returning view
+          // model.FolderName = folder.Name;
+          // model.AvailableRequiredDocuments = ... (if used)
+          return View(model); // Return to the upload view with error
         }
 
-        // Save document record
+
+        // Determine the 'UploadedBy' user.
+        string uploadedByUserName = "System"; // Default to "System" if user is not authenticated
+        if (User.Identity != null && User.Identity.IsAuthenticated && !string.IsNullOrEmpty(User.Identity.Name))
+        {
+          uploadedByUserName = User.Identity.Name;
+        }
+
+        // 2. Create the Document record for the database
         var document = new Document
         {
-          FileName = model.File.FileName,
-          FilePath = Path.Combine("uploads", folder.Id.ToString(), uniqueFileName),
+          FileName = model.File.FileName, // Original filename
+          FilePath = Path.Combine("uploads", folder.Id.ToString(), uniqueFileName), // Relative path for database storage
           FileType = extension,
           FileSize = model.File.Length,
           Description = model.Description,
           ComplianceFolderId = model.ComplianceFolderId,
-          UploadedBy = createdByUserName
+          UploadDate = DateTime.Now, // Set the upload date
+          UploadedBy = uploadedByUserName
         };
 
-        _context.Documents.Add(document);
-        await _context.SaveChangesAsync();
+        // 3. IMPORTANT: Link to RequiredDocument and mark as submitted if applicable
+        // The modal sends SelectedRequiredDocumentId if a specific required document upload button was clicked
+        if (model.SelectedRequiredDocumentId.HasValue)
+        {
+          document.RequiredDocumentId = model.SelectedRequiredDocumentId.Value; // Assign the ID
+
+          // Retrieve the RequiredDocument from the database to update its status
+          var requiredDocument = await _context.RequiredDocuments.FindAsync(model.SelectedRequiredDocumentId.Value);
+          if (requiredDocument != null)
+          {
+            requiredDocument.IsSubmitted = true;
+            requiredDocument.SubmissionDate = DateTime.Now; // Mark submission date
+            requiredDocument.SubmittedBy = uploadedByUserName; // Mark who submitted it
+            _context.RequiredDocuments.Update(requiredDocument); // Tell EF Core to update this entity
+          }
+        }
+
+        _context.Documents.Add(document); // Add the new Document entity
+        await _context.SaveChangesAsync(); // Save all changes (new Document, and updated RequiredDocument)
 
         TempData["Success"] = "Document uploaded successfully!";
+        // Redirect back to the FolderDetails view to show the updated list
         return RedirectToAction(nameof(FolderDetails), new { id = model.ComplianceFolderId });
       }
-
-      return View(model);
+      else
+      {
+        // If ModelState is not valid or no file was selected, return to the view
+        // You might want to get the FolderName back for the view if it's used there
+        var folderForModel = await _context.ComplianceFolders.FindAsync(model.ComplianceFolderId);
+        if (folderForModel != null)
+        {
+          model.FolderName = folderForModel.Name;
+        }
+        TempData["Error"] = "Please select a file to upload and provide valid details.";
+        return View(model); // Returns the view, displaying validation errors
+      }
     }
 
     public async Task<IActionResult> DownloadDocument(int id)
