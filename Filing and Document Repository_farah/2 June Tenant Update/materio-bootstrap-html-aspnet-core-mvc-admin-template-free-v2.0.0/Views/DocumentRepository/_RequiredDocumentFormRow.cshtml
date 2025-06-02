@@ -1,0 +1,23 @@
+@model AspnetCoreMvcFull.Models.ViewModels.RequiredDocumentViewModel
+
+
+@{
+	var index = ViewData["index"] != null ? (int)ViewData["index"] : 0;
+}
+
+<div class="row g-3 align-items-end mb-2 required-document-row" data-index="@index">
+	<div class="col-md-5">
+		<label asp-for="DocumentName" class="form-label"></label>
+		<input asp-for="DocumentName" class="form-control" name="RequiredDocuments[@index].DocumentName" />
+		<span asp-validation-for="DocumentName" class="text-danger"></span>
+	</div>
+	<div class="col-md-6">
+		<label asp-for="Description" class="form-label">Description (Optional)</label>
+		<input asp-for="Description" class="form-control" name="RequiredDocuments[@index].Description" />
+		<span asp-validation-for="Description" class="text-danger"></span>
+	</div>
+	<div class="col-md-1">
+		<button type="button" class="btn btn-danger btn-sm remove-document">Remove</button>
+	</div>
+	<input type="hidden" name="RequiredDocuments[@index].IsRequired" value="true" />
+</div>
