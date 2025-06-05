@@ -1,0 +1,15 @@
+@{
+  Layout = "_CommonMasterLayout";
+}
+
+@section VendorStyles { @RenderSection("VendorStyles", required: false) }
+
+@section PageStyles { @RenderSection("PageStyles", required: false) }
+
+@RenderBody()
+
+@section VendorScripts { @RenderSection("VendorScripts", required: false) }
+
+@section PageScripts { @RenderSection("PageScripts", required: false) }
+
+@RenderSection("Scripts", required: false)

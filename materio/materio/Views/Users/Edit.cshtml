@@ -1,0 +1,72 @@
+@model AspnetCoreMvcFull.Models.ViewModels.UserEditViewModel
+
+@{
+	ViewData["Title"] = "Edit User";
+}
+
+<div class="container mx-auto p-4">
+	<div class="bg-white shadow-lg rounded-lg p-6 max-w-md mx-auto">
+		<h1 class="text-2xl font-bold text-gray-800 mb-6">Edit User</h1>
+
+		<form asp-action="Edit" method="post">
+			<div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+			<input type="hidden" asp-for="Id" />
+
+			<div class="mb-4">
+				<label asp-for="UserName" class="block text-gray-700 text-sm font-bold mb-2"></label>
+				<input asp-for="UserName" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+				<span asp-validation-for="UserName" class="text-red-500 text-xs italic"></span>
+			</div>
+
+			<div class="mb-4">
+				<label asp-for="Email" class="block text-gray-700 text-sm font-bold mb-2"></label>
+				<input asp-for="Email" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+				<span asp-validation-for="Email" class="text-red-500 text-xs italic"></span>
+			</div>
+
+			<div class="mb-6">
+				<label asp-for="CurrentRoles" class="block text-gray-700 text-sm font-bold mb-2"></label>
+				<p class="text-gray-800 text-base">
+					@if (Model.CurrentRoles != null && Model.CurrentRoles.Any())
+					{
+						<span>@string.Join(", ", Model.CurrentRoles)</span>
+					}
+					else
+					{
+						<span class="text-gray-500">No roles assigned.</span>
+					}
+				</p>
+				<small class="text-gray-500">Roles cannot be managed from this page yet.</small>
+			</div>
+
+			@*
+                Uncomment the following section when you are ready to implement role assignment.
+                You will also need to uncomment `SelectedRoles` and `AllRoles` in `UserEditViewModel`
+                and the role update logic in `UsersController.Edit` (POST action).
+            *@
+			@*
+            <div class="mb-6">
+                <label asp-for="SelectedRoles" class="block text-gray-700 text-sm font-bold mb-2">Assign Roles</label>
+                <select asp-for="SelectedRoles" asp-items="Model.AllRoles" multiple class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32">
+                </select>
+                <small class="text-gray-500">Hold Ctrl (Windows) or Command (Mac) to select multiple roles.</small>
+            </div>
+            *@
+
+			<div class="flex items-center justify-between">
+				<button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 ease-in-out">
+					Save Changes
+				</button>
+				<a asp-action="Index" class="inline-block align-baseline font-bold text-sm text-blue-600 hover:text-blue-800">
+					Back to List
+				</a>
+			</div>
+		</form>
+	</div>
+</div>
+
+@section PageScripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}

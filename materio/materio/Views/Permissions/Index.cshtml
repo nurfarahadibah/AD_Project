@@ -1,0 +1,290 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.ViewModels.PermissionListViewModel>
+
+@{
+	ViewData["Title"] = "Permissions List";
+}
+
+<div class="content-wrapper">
+	<div class="container-xxl flex-grow-1 container-p-y">
+		<h4 class="py-3 mb-4"><span class="text-muted fw-light">Access Control /</span> Permissions List</h4>
+
+		<div class="card">
+			<div class="card-datatable table-responsive">
+				<table class="datatables-permissions table border-top">
+					@* Added border-top for Materio style *@
+					<thead>
+						<tr>
+							<th></th> @* Placeholder for checkbox/details expander *@
+							<th></th> @* Another placeholder *@
+							<th>Name</th>
+							<th>Assigned To</th>
+							<th>Created Date</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (!Model.Any())
+						{
+							<tr>
+								<td colspan="6" class="text-center py-4 text-muted">No permissions found.</td>
+							</tr>
+						}
+						else
+						{
+							@foreach (var permission in Model)
+							{
+								<tr data-permission-name="@permission.Name">
+									@* Added data attribute to easily identify the row *@
+									<td></td> @* Placeholder cell *@
+									<td></td> @* Placeholder cell *@
+									<td class="permission-name-cell">@permission.Name</td> @* Added class for easy targeting *@
+									<td>
+										<div class="d-flex align-items-center">
+											@if (permission.AssignedToRoles.Any())
+											{
+												@foreach (var roleName in permission.AssignedToRoles)
+												{
+													<span class="badge bg-label-primary me-1">@roleName</span>
+												}
+											}
+											else
+											{
+												<span class="text-muted">No roles assigned</span>
+											}
+											<span class="ms-2 text-muted">(@permission.AssignedToCount)</span> @* Display count next to roles *@
+										</div>
+									</td>
+									<td>@permission.CreatedDate.ToShortDateString()</td>
+									<td>
+										<div class="d-inline-block text-nowrap">
+											@* Edit/Delete actions for permissions - now with specific functions *@
+											<button class="btn btn-sm btn-icon" title="Edit Permission"
+													onclick="showEditPermissionModal('@permission.Name', this.closest('tr'))">
+												@* Pass row element *@
+												<i class="ri-edit-line"></i>
+											</button>
+											<button class="btn btn-sm btn-icon text-danger" title="Delete Permission"
+													onclick="showDeleteConfirmationModal('@permission.Name', this.closest('tr'))">
+												@* Pass row element *@
+												<i class="ri-delete-bin-line"></i>
+											</button>
+										</div>
+									</td>
+								</tr>
+							}
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		@* Add Permission Modal (from your template, but not fully functional without backend) *@
+		<div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered modal-simple">
+				<div class="modal-content">
+					<div class="modal-body p-0">
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						<div class="text-center mb-6">
+							<h4 class="mb-2">Add New Permission</h4>
+							<p>Permissions are defined in the Roles modal for now.</p>
+						</div>
+						@* Form for adding a new permission if you were to implement it here *@
+						<form id="addPermissionForm" class="row g-3" onsubmit="return false">
+							<div class="col-12 mb-3">
+								<div class="form-floating form-floating-outline">
+									<input type="text" id="modalPermissionName" name="modalPermissionName" class="form-control" placeholder="Enter a permission name" tabindex="-1" />
+									<label for="modalPermissionName">Permission Name</label>
+								</div>
+							</div>
+							<div class="col-12 text-center">
+								<button type="submit" class="btn btn-primary me-3">Submit</button>
+								<button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		@* Custom Modal for editing a permission - Prettier Version *@
+		<div class="modal fade" id="editPermissionModal" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered modal-sm">
+				@* Smaller modal for edit *@
+				<div class="modal-content rounded-lg shadow-xl p-6 bg-white dark:bg-gray-800">
+					@* Added rounded corners, shadow, padding, and background *@
+					<div class="modal-body p-0">
+						<button type="button" class="btn-close absolute top-4 right-4 text-gray-500 hover:text-gray-700" data-bs-dismiss="modal" aria-label="Close"></button> @* Positioned close button *@
+						<div class="text-center mb-6">
+							<h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white">Edit Permission</h4> @* Larger, bolder title *@
+							<p class="text-gray-600 dark:text-gray-400">Update the permission name below.</p>
+						</div>
+						<form class="row g-3" onsubmit="return false;">
+							<div class="col-12 mb-4">
+								@* Increased bottom margin *@
+								<div class="form-floating form-floating-outline">
+									<input type="text" id="editModalPermissionName" class="form-control rounded-md border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Enter new permission name" /> @* Styled input *@
+									<label for="editModalPermissionName" class="text-gray-700 dark:text-gray-300">Permission Name</label>
+								</div>
+							</div>
+							<div class="col-12 text-center flex justify-center space-x-4">
+								@* Centered and spaced buttons *@
+								<button type="button" class="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300" onclick="saveEditedPermission()">Save Changes</button> @* Styled primary button *@
+								<button type="button" class="btn btn-outline-secondary border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 font-bold py-2 px-4 rounded-md shadow-sm transition duration-300" data-bs-dismiss="modal">Cancel</button> @* Styled secondary button *@
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		@* Custom Modal for delete confirmation - Prettier Version *@
+		<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered modal-sm">
+				@* Smaller modal for delete *@
+				<div class="modal-content rounded-lg shadow-xl p-6 bg-white dark:bg-gray-800">
+					@* Added rounded corners, shadow, padding, and background *@
+					<div class="modal-body p-0">
+						<button type="button" class="btn-close absolute top-4 right-4 text-gray-500 hover:text-gray-700" data-bs-dismiss="modal" aria-label="Close"></button> @* Positioned close button *@
+						<div class="text-center mb-6">
+							<h4 class="mb-2 text-2xl font-semibold text-red-600 dark:text-red-400">Confirm Deletion</h4> @* Larger, bolder, red title *@
+							<p id="deleteConfirmationMessage" class="text-gray-600 dark:text-gray-400"></p>
+						</div>
+						<div class="col-12 text-center flex justify-center space-x-4">
+							@* Centered and spaced buttons *@
+							<button type="button" class="btn btn-danger bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300" onclick="confirmDeletePermission()">Delete</button> @* Styled danger button *@
+							<button type="button" class="btn btn-outline-secondary border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 font-bold py-2 px-4 rounded-md shadow-sm transition duration-300" data-bs-dismiss="modal">Cancel</button> @* Styled secondary button *@
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<script>
+	// Global variables to store the current permission name and the table row being edited/deleted
+	let currentEditingPermissionName = '';
+	let currentEditingRow = null;
+
+	// Function to show the Edit Permission modal
+	function showEditPermissionModal(permissionName, rowElement) {
+		currentEditingPermissionName = permissionName;
+		currentEditingRow = rowElement;
+
+		// Populate the input field with the current permission name
+		document.getElementById('editModalPermissionName').value = permissionName;
+
+		// Show the edit modal
+		const editModal = new bootstrap.Modal(document.getElementById('editPermissionModal'));
+		editModal.show();
+	}
+
+	// Function to save the edited permission (client-side simulation)
+	function saveEditedPermission() {
+		const newPermissionName = document.getElementById('editModalPermissionName').value.trim();
+
+		if (newPermissionName && currentEditingRow) {
+			// Find the cell displaying the permission name and update it
+			const nameCell = currentEditingRow.querySelector('.permission-name-cell');
+			if (nameCell) {
+				nameCell.innerText = newPermissionName;
+				// Update the data attribute for consistency, though not strictly necessary for this simulation
+				currentEditingRow.dataset.permissionName = newPermissionName;
+			}
+			// In a real application, you would send an AJAX request to your backend here
+			// fetch('/Permissions/UpdatePermission', {
+			//     method: 'POST',
+			//     headers: { 'Content-Type': 'application/json' },
+			//     body: JSON.stringify({ originalName: currentEditingPermissionName, newName: newPermissionName })
+			// }).then(response => {
+			//     if (response.ok) {
+			//         // Update UI or show success
+			//         alert('Permission updated successfully!');
+			//     } else {
+			//         // Handle error
+			//         alert('Failed to update permission.');
+			//     }
+			// });
+		}
+
+		// Hide the modal
+		const editModal = bootstrap.Modal.getInstance(document.getElementById('editPermissionModal'));
+		if (editModal) {
+			editModal.hide();
+		}
+	}
+
+	// Function to show the Delete Confirmation modal
+	function showDeleteConfirmationModal(permissionName, rowElement) {
+		currentEditingPermissionName = permissionName; // Re-using for delete context
+		currentEditingRow = rowElement;
+
+		// Update the confirmation message
+		document.getElementById('deleteConfirmationMessage').innerText = `Are you sure you want to delete the permission: "${permissionName}"? This action cannot be undone.`;
+
+		// Show the delete confirmation modal
+		const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+		deleteModal.show();
+	}
+
+	// Function to confirm and perform the deletion (client-side simulation)
+	function confirmDeletePermission() {
+		if (currentEditingRow) {
+			currentEditingRow.remove(); // Remove the row from the table
+
+			// In a real application, you would send an AJAX request to your backend here
+			// fetch('/Permissions/DeletePermission', {
+			//     method: 'POST',
+			//     headers: { 'Content-Type': 'application/json' },
+			//     body: JSON.stringify({ name: currentEditingPermissionName })
+			// }).then(response => {
+			//     if (response.ok) {
+			//         // Show success message
+			//         alert('Permission deleted successfully!');
+			//     } else {
+			//         // Handle error
+			//         alert('Failed to delete permission.');
+			//     }
+			// });
+		}
+
+		// Hide the modal
+		const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmationModal'));
+		if (deleteModal) {
+			deleteModal.hide();
+		}
+	}
+
+	// The original showActionMessage is no longer directly used by Edit/Delete buttons,
+	// but can be kept for other general messages if needed (e.g., for "Add New Permission" form submission).
+	function showActionMessage(actionType, messageContent) {
+		const titleElement = document.getElementById('actionMessageTitle');
+		const contentElement = document.getElementById('actionMessageContent');
+
+		titleElement.innerText = `${actionType} Action`;
+		contentElement.innerText = messageContent;
+
+		const actionModal = new bootstrap.Modal(document.getElementById('actionMessageModal'));
+		actionModal.show();
+	}
+
+	// Example of how you might use showActionMessage for the "Add New Permission" form
+	// This would typically involve an AJAX call to the server to add the permission.
+	// For now, it just shows a message.
+	document.getElementById('addPermissionForm').addEventListener('submit', function(event) {
+		event.preventDefault(); // Prevent default form submission
+		const permissionName = document.getElementById('modalPermissionName').value.trim();
+		if (permissionName) {
+			showActionMessage('Add', `Attempted to add permission: "${permissionName}". This functionality requires backend implementation.`);
+			// Optionally clear the input and close the modal
+			document.getElementById('modalPermissionName').value = '';
+			const addModal = bootstrap.Modal.getInstance(document.getElementById('addPermissionModal'));
+			if (addModal) {
+				addModal.hide();
+			}
+		} else {
+			showActionMessage('Validation', 'Please enter a permission name.');
+		}
+	});
+
+</script>
