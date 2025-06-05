@@ -1,0 +1,45 @@
+@using AspnetCoreMvcFull.Models.ViewModels
+@model DocumentUploadViewModel
+@{
+	ViewData["Title"] = "Upload Document";
+}
+
+<div class="container mt-4">
+	<div class="row">
+		<div class="col-md-8 offset-md-2">
+			<div class="card">
+				<div class="card-header">
+					<h4 class="mb-0">Upload Document to Folder: <strong>@Model.FolderName</strong></h4>
+				</div>
+				<div class="card-body">
+					<form asp-action="UploadDocument" method="post" enctype="multipart/form-data">
+						<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+						<input type="hidden" asp-for="ComplianceFolderId" />
+
+						<div class="mb-3">
+							<label asp-for="File" class="form-label"></label>
+							<input type="file" asp-for="File" class="form-control" />
+							<span asp-validation-for="File" class="text-danger"></span>
+						</div>
+
+						<div class="mb-3">
+							<label asp-for="Description" class="form-label"></label>
+							<textarea asp-for="Description" class="form-control" rows="3"></textarea>
+							<span asp-validation-for="Description" class="text-danger"></span>
+						</div>
+
+						<div class="d-grid gap-2 mt-4">
+							<button type="submit" class="btn btn-primary">Upload Document</button>
+							<a asp-action="FolderDetails" asp-route-id="@Model.ComplianceFolderId" class="btn btn-outline-secondary">Cancel</a>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+@* No specific scripts for this page, but keeping the section for consistency if needed later *@
+}
