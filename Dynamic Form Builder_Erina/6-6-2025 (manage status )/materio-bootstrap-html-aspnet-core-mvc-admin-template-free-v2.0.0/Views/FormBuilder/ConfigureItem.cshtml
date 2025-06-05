@@ -1,0 +1,169 @@
+@model AspnetCoreMvcFull.Models.ViewModels.ConfigureItemPageViewModel
+@using Newtonsoft.Json
+
+@{
+	ViewData["Title"] = $"Configure Item - {Model.ItemConfig.Question}";
+	// Set a different layout if you have one specific for builder/config pages
+	// Layout = "~/Views/Shared/_LayoutBuilder.cshtml"; // Example if you create a custom layout
+}
+
+@* Add Font Awesome CDN (if not already in _Layout.cshtml) *@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0x30z3B9+P5L9O4x0J/bC7y/p7v0w9s4p0z4+0/66Xn1Z8w2O0f8+0/Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+@* Add Remixicon CDN (if not already in _Layout.cshtml) *@
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
+<div class="container-fluid h-100">
+	<div class="row h-100">
+		<div class="col-md-3 bg-light border-end p-3">
+			<h5>Form Builder</h5>
+			<div class="d-grid gap-2 mb-4">
+				<a href="@Url.Action("Builder", new { id = Model.FormTypeId })" class="btn btn-outline-secondary">
+					<i class="fas fa-arrow-left me-2"></i>Back to Builder
+				</a>
+			</div>
+
+			<div class="mt-4">
+				<h6 class="text-muted">Form Context</h6>
+				<p class="small text-muted mb-0"><strong>Form:</strong> @Model.FormName</p>
+				<p class="small text-muted">@Model.FormDescription</p>
+			</div>
+		</div>
+
+		<div class="col-md-6 p-3">
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<div>
+					<h4>Configure Item: <span class="text-primary">@Model.ItemConfig.Question</span></h4>
+					<p class="text-muted">Type: @Model.ItemConfig.ItemType</p>
+				</div>
+			</div>
+
+			<div class="card mb-3 p-4">
+				<h5 class="card-title mb-4">Item Properties</h5>
+				<form asp-action="ConfigureItem" asp-controller="FormBuilder" method="post" asp-route-id="">
+					@Html.AntiForgeryToken()
+					<input type="hidden" asp-for="ItemConfig.ItemId" />
+					<input type="hidden" asp-for="ItemConfig.ItemType" />
+					<input type="hidden" asp-for="FormTypeId" />
+
+					<div class="mb-3">
+						<label asp-for="ItemConfig.Question" class="form-label">Question</label>
+						<input asp-for="ItemConfig.Question" class="form-control" required />
+						<span asp-validation-for="ItemConfig.Question" class="text-danger"></span>
+					</div>
+
+					<div class="form-check mb-3">
+						<input class="form-check-input" type="checkbox" asp-for="ItemConfig.IsRequired" value="true" />
+						<label class="form-check-label" asp-for="ItemConfig.IsRequired">
+							Required
+						</label>
+					</div>
+					@if (Model.ItemConfig.ItemType == AspnetCoreMvcFull.Models.ItemType.Text || Model.ItemConfig.ItemType == AspnetCoreMvcFull.Models.ItemType.Number || Model.ItemConfig.ItemType == AspnetCoreMvcFull.Models.ItemType.Textarea)
+					{
+						<div class="mb-3">
+							<label asp-for="ItemConfig.MaxScore" class="form-label">Max Score (Optional)</label>
+							<input type="number" asp-for="ItemConfig.MaxScore" class="form-control" min="0" />
+							<span asp-validation-for="ItemConfig.MaxScore" class="text-danger"></span>
+						</div>
+					}
+
+					@if (Model.ItemConfig.ItemType == AspnetCoreMvcFull.Models.ItemType.Radio || Model.ItemConfig.ItemType == AspnetCoreMvcFull.Models.ItemType.Checkbox || Model.ItemConfig.ItemType == AspnetCoreMvcFull.Models.ItemType.Dropdown)
+					{
+						<div class="mb-3">
+							<label class="form-label">Options</label>
+							<div id="optionsContainer">
+								@if (Model.ItemConfig.Options != null && Model.ItemConfig.Options.Any())
+								{
+									for (int i = 0; i < Model.ItemConfig.Options.Count; i++)
+									{
+										<div class="input-group mb-2 option-item">
+											<input type="text" name="ItemConfig.Options[@i]" class="form-control" value="@Model.ItemConfig.Options[i]" required />
+											<button type="button" class="btn btn-outline-danger" onclick="removeOption(this)"><i class="ri-delete-bin-line"></i></button>
+										</div>
+									}
+								}
+							</div>
+							<button type="button" class="btn btn-outline-secondary btn-sm" onclick="addOption()">Add Option</button>
+						</div>
+					}
+
+					<div class="form-check mb-3">
+						<input class="form-check-input" type="checkbox" asp-for="ItemConfig.HasLooping" value="true" onchange="toggleLoopingFields(this)" />
+						<label class="form-check-label" asp-for="ItemConfig.HasLooping">
+							Enable Looping
+						</label>
+					</div>
+					<div id="loopingFields" style="display: @(Model.ItemConfig.HasLooping ? "block" : "none");">
+						<div class="mb-3">
+							<label asp-for="ItemConfig.LoopCount" class="form-label">Loop Count</label>
+							<input type="number" asp-for="ItemConfig.LoopCount" class="form-control" min="1" />
+							<span asp-validation-for="ItemConfig.LoopCount" class="text-danger"></span>
+						</div>
+						<div class="mb-3">
+							<label asp-for="ItemConfig.LoopLabel" class="form-label">Loop Label</label>
+							<input type="text" asp-for="ItemConfig.LoopLabel" class="form-control" />
+							<span asp-validation-for="ItemConfig.LoopLabel" class="text-danger"></span>
+						</div>
+					</div>
+
+					<div class="d-flex justify-content-between mt-4">
+						<button type="submit" class="btn btn-primary">Save Changes</button>
+						<a href="@Url.Action("Builder", new { id = Model.FormTypeId })" class="btn btn-secondary">Cancel</a>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<div class="col-md-3 bg-light border-start p-3">
+			<h5>Item Details</h5>
+			<p class="small text-muted">Use this panel to adjust the properties of your selected form item.</p>
+			<hr />
+			<h6>Helpful Tips:</h6>
+			<ul class="small text-muted">
+				<li>**Question:** The text displayed to the user.</li>
+				<li>**Required:** If checked, the user must provide an answer.</li>
+				<li>**Max Score:** For audit forms, assign a maximum score for this item.</li>
+				<li>**Looping:** Repeat this question multiple times (e.g., for multiple assets).</li>
+				<li>**Options:** For choice-based items, define the available choices.</li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+	<script>
+		// These functions are specific to the item configuration form
+		function toggleLoopingFields(checkbox) {
+			const loopingFields = document.getElementById('loopingFields');
+			loopingFields.style.display = checkbox.checked ? 'block' : 'none';
+		}
+
+		function addOption() {
+			const optionsContainer = document.getElementById('optionsContainer');
+			const optionCount = optionsContainer.querySelectorAll('.option-item').length;
+			const newOptionHtml = `
+				<div class="input-group mb-2 option-item">
+					<input type="text" name="ItemConfig.Options[${optionCount}]" class="form-control" placeholder="New Option" required />
+					<button type="button" class="btn btn-outline-danger" onclick="removeOption(this)"><i class="ri-delete-bin-line"></i></button>
+				</div>
+			`;
+			optionsContainer.insertAdjacentHTML('beforeend', newOptionHtml);
+		}
+
+		function removeOption(button) {
+			button.closest('.option-item').remove();
+			reindexOptions();
+		}
+
+		function reindexOptions() {
+			const optionsContainer = document.getElementById('optionsContainer');
+			const optionInputs = optionsContainer.querySelectorAll('.option-item input[type="text"]');
+			optionInputs.forEach((input, index) => {
+				// Ensure the name attribute matches the ItemConfig.Options model binding
+				input.name = `ItemConfig.Options[${index}]`;
+			});
+		}
+
+		// **Removed the JavaScript form submission logic**
+		// The form will now submit directly to the controller via a standard POST request
+	</script>
+}
