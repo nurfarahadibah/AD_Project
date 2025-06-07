@@ -1,0 +1,240 @@
+@model AspnetCoreMvcFull.Models.JenisForm
+
+@{
+	ViewData["Title"] = $"Preview - {Model.Name}";
+}
+
+@* Include Anti-Forgery Token for AJAX POST requests *@
+@Html.AntiForgeryToken()
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-8 mx-auto">
+			<div class="d-flex justify-content-between align-items-center mb-4">
+				<div>
+					<h2>@Model.Name</h2>
+					<p class="text-muted">@Model.Description</p>
+				</div>
+				<a href="@Url.Action("Builder", new { id = Model.FormTypeId })" class="btn btn-outline-primary">
+					<i class="fas fa-edit me-1"></i>Back to Builder
+				</a>
+			</div>
+
+			@* Container for displaying success/error messages *@
+			<div id="messageContainer" class="mt-4 mb-4"></div>
+
+			@if (!Model.Sections.Any())
+			{
+				<div class="text-center py-5">
+					<i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+					<h5 class="text-muted">No sections to preview</h5>
+					<p class="text-muted">Add sections and items in the builder to see the preview</p>
+				</div>
+			}
+			else
+			{
+				<form id="auditForm">
+					@foreach (var sec in Model.Sections.OrderBy(s => s.Order))
+					{
+						<div class="card mb-4">
+							<div class="card-header">
+								<h4 class="mb-0">@sec.Title</h4>
+								<small class="text-muted">@sec.Description</small>
+							</div>
+							<div class="card-body">
+								@if (!sec.Items.Any())
+								{
+									<div class="text-center py-3">
+										<p class="text-muted">No items in this section</p>
+									</div>
+								}
+								else
+								{
+									@foreach (var item in sec.Items.OrderBy(i => i.Order))
+									{
+										<div class="mb-4">
+											@if (item.HasLooping)
+											{
+												<div class="alert alert-info">
+													<i class="fas fa-redo me-2"></i>
+													<strong>Looping Item:</strong> This question repeats @item.LoopCount times for each @item.LoopLabel
+												</div>
+
+												@for (int i = 1; i <= item.LoopCount; i++)
+												{
+													<div class="border rounded p-3 mb-3">
+														<h6 class="text-primary">@item.LoopLabel @i</h6>
+														@await Html.PartialAsync("_ItemRenderer", item, new ViewDataDictionary(ViewData) { { "LoopIndex", i } })
+													</div>
+												}
+											}
+											else
+											{
+												@await Html.PartialAsync("_ItemRenderer", item)
+											}
+										</div>
+									}
+								}
+							</div>
+						</div>
+					}
+
+					<div class="card bg-light">
+						<div class="card-body">
+							<h5 class="text-primary mb-3">Scoring Summary</h5>
+							<div class="row">
+								<div class="col-md-4">
+									<div class="text-center">
+										<div class="h4 text-success" id="currentScore">0</div>
+										<small class="text-muted">Current Score</small>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="text-center">
+										<div class="h4 text-primary" id="maxScore">@Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0)</div>
+										<small class="text-muted">Maximum Possible</small>
+									</div>
+								</div>
+								<div class="col-md-4">
+									<div class="text-center">
+										<div class="h4 text-warning" id="percentage">0%</div>
+										<small class="text-muted">Percentage</small>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="d-grid gap-2 mt-4">
+						<button type="button" class="btn btn-primary btn-lg" onclick="submitAuditForm()">
+							Submit Audit Form
+						</button>
+					</div>
+				</form>
+			}
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		function calculateScore() {
+			let currentScore = 0;
+			// Ensure maxScore is calculated correctly, including potential looping items if relevant
+			// For now, it reflects the server-calculated maxScore which assumes non-looping.
+			// If scores within loops contribute differently, this logic would need to be in _ItemRenderer or more complex here.
+			const maxScore = @Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0);
+
+			// Calculate score based on form inputs
+			document.querySelectorAll('#auditForm input, #auditForm select, #auditForm textarea').forEach(input => {
+				const maxScoreAttr = input.getAttribute('data-max-score');
+				if (maxScoreAttr) {
+					const itemMaxScore = parseInt(maxScoreAttr);
+
+					// Check for input type and value/checked status to contribute to score
+					if (input.type === 'number') {
+						currentScore += Math.min(parseInt(input.value) || 0, itemMaxScore);
+					} else if (input.type === 'checkbox' && input.checked) {
+						currentScore += itemMaxScore;
+					} else if (input.type === 'radio' && input.checked) {
+						currentScore += itemMaxScore;
+					} else if (input.tagName === 'SELECT' && input.value) {
+						currentScore += itemMaxScore;
+					}
+				}
+			});
+
+			document.getElementById('currentScore').textContent = currentScore;
+			document.getElementById('percentage').textContent =
+				maxScore > 0 ? Math.round((currentScore / maxScore) * 100) + '%' : '0%';
+		}
+
+		/**
+		 * Submits the audit form, specifically updating the form status to Published (2).
+		 * Uses Fetch API to send data and handles success/error messages.
+		 */
+		function submitAuditForm() {
+			const formTypeId = @Model.FormTypeId;
+			const newStatus = 2; // Corresponds to FormStatus.Published
+
+			// Get anti-forgery token from the hidden input field
+			const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+			const antiForgeryToken = tokenElement ? tokenElement.value : null;
+
+			if (!antiForgeryToken) {
+				displayMessage("Error: Security token not found. Cannot submit form.", "danger");
+				return;
+			}
+
+			// Prepare form data for the POST request
+			const formData = new FormData();
+			formData.append('formTypeId', formTypeId);
+			formData.append('newStatus', newStatus);
+			formData.append('__RequestVerificationToken', antiForgeryToken);
+
+			// Send the request
+			fetch('@Url.Action("UpdateFormStatus", "FormBuilder")', {
+				method: 'POST',
+				body: formData // FormData automatically sets 'Content-Type: multipart/form-data'
+			})
+			.then(response => {
+				// Check if the response was successful
+				if (!response.ok) {
+					// Try to parse JSON error message from server, or throw generic error
+					return response.json().then(err => {
+						throw new Error(err.message || `Server error: ${response.status} ${response.statusText}`);
+					}).catch(() => {
+						// If response is not JSON, throw a generic error
+						throw new Error(`Server error: ${response.status} ${response.statusText}`);
+					});
+				}
+				return response.json(); // Parse the JSON response
+			})
+			.then(data => {
+				if (data.success) {
+					displayMessage("Form status updated to Published successfully! Redirecting...", "success");
+					// Redirect to the Builder page after a short delay
+					setTimeout(() => {
+						window.location.href = '@Url.Action("Index", "FormBuilder", new { id = Model.FormTypeId })';
+					}, 1500); // Redirect after 1.5 seconds
+				} else {
+					displayMessage(`Error updating form status: ${data.message}`, "danger");
+				}
+			})
+			.catch(error => {
+				console.error('An unexpected error occurred during form submission:', error);
+				displayMessage(`An unexpected error occurred: ${error.message}`, "danger");
+			});
+		}
+
+		
+		function displayMessage(message, type) {
+			const messageContainer = document.getElementById('messageContainer');
+			if (!messageContainer) {
+				console.error("Message container not found. Displaying message via console:", message);
+				return;
+			}
+
+			// Clear any existing messages
+			messageContainer.innerHTML = '';
+
+			// Create and append the new alert
+			const alertHtml = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+				${message}
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>`;
+			messageContainer.innerHTML = alertHtml;
+
+			// Scroll to the message for visibility
+			messageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
+
+
+		// Recalculate score when inputs change
+		document.addEventListener('change', calculateScore);
+		document.addEventListener('input', calculateScore);
+
+		// Initial score calculation on page load
+		document.addEventListener('DOMContentLoaded', calculateScore);
+	</script>
+}
