@@ -1,0 +1,104 @@
+@using AspnetCoreMvcFull.Models.ViewModels
+@model CreateFolderViewModel
+@{
+	ViewData["Title"] = "Create Compliance Folder";
+}
+
+<div class="container mt-4">
+	<div class="row">
+		<div class="col-md-8 offset-md-2">
+			<div class="card">
+				<div class="card-header">
+					<h4 class="mb-0">Create New Compliance Folder</h4>
+				</div>
+				<div class="card-body">
+					<form asp-action="CreateFolder" method="post">
+						<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+						<div class="mb-3">
+							<label asp-for="Name" class="form-label"></label>
+							<input asp-for="Name" class="form-control" />
+							<span asp-validation-for="Name" class="text-danger"></span>
+						</div>
+
+						<div class="mb-3">
+							<label asp-for="ComplianceType" class="form-label"></label>
+							<select asp-for="ComplianceType" class="form-select" asp-items="@(new SelectList(ViewBag.ComplianceTypes))">
+								<option value="">-- Select Compliance Type --</option>
+							</select>
+							<span asp-validation-for="ComplianceType" class="text-danger"></span>
+						</div>
+
+						<div class="mb-3">
+							<label asp-for="Description" class="form-label"></label>
+							<textarea asp-for="Description" class="form-control" rows="3"></textarea>
+							<span asp-validation-for="Description" class="text-danger"></span>
+						</div>
+
+						<h5>Required Documents</h5>
+						<div id="requiredDocumentsContainer">
+							@* Initial empty required document entry (hidden and cloned for new entries) *@
+							<div class="row mb-2 required-document-entry d-none" id="requiredDocumentTemplate">
+								<div class="col-md-5">
+									<input type="text" class="form-control document-name-input" placeholder="Document Name" />
+								</div>
+								<div class="col-md-5">
+									<input type="text" class="form-control document-description-input" placeholder="Description (Optional)" />
+								</div>
+								<div class="col-md-1 d-flex align-items-center">
+									<div class="form-check">
+										<input class="form-check-input is-required-input" type="checkbox" checked />
+										<label class="form-check-label">Required</label>
+									</div>
+								</div>
+								<div class="col-md-1">
+									<button type="button" class="btn btn-danger btn-sm remove-document-btn"><i class="fas fa-minus-circle"></i></button>
+								</div>
+							</div>
+						</div>
+						<button type="button" class="btn btn-secondary btn-sm mt-2" id="addRequiredDocumentBtn">
+							<i class="fas fa-plus-circle"></i> Add Required Document
+						</button>
+
+						<div class="d-grid gap-2 mt-4">
+							<button type="submit" class="btn btn-primary">Create Folder</button>
+							<a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+	<script>
+		$(document).ready(function () {
+			// Function to update input names/ids based on index
+			function updateRequiredDocumentNames() {
+				$('#requiredDocumentsContainer .required-document-entry').each(function (index) {
+					var $this = $(this);
+					$this.find('.document-name-input').attr('name', `RequiredDocuments[${index}].DocumentName`).attr('id', `RequiredDocuments_${index}__DocumentName`);
+					$this.find('.document-description-input').attr('name', `RequiredDocuments[${index}].Description`).attr('id', `RequiredDocuments_${index}__Description`);
+					$this.find('.is-required-input').attr('name', `RequiredDocuments[${index}].IsRequired`).attr('id', `RequiredDocuments_${index}__IsRequired`);
+				});
+			}
+
+			// Add new required document entry
+			$('#addRequiredDocumentBtn').click(function () {
+				var newEntry = $('#requiredDocumentTemplate').clone().removeClass('d-none').removeAttr('id');
+				$('#requiredDocumentsContainer').append(newEntry);
+				updateRequiredDocumentNames();
+			});
+
+			// Remove required document entry
+			$(document).on('click', '.remove-document-btn', function () {
+				$(this).closest('.required-document-entry').remove();
+				updateRequiredDocumentNames(); // Re-index after removal
+			});
+
+			// Initial call to set up names if there are pre-existing entries (e.g., on validation error)
+			updateRequiredDocumentNames();
+		});
+	</script>
+}
