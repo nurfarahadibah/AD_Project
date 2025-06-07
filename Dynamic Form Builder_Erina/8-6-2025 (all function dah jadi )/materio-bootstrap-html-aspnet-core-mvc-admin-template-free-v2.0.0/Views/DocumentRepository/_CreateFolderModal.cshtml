@@ -1,0 +1,125 @@
+@model AspnetCoreMvcFull.Models.ViewModels.CreateFolderViewModel
+
+<div class="modal fade" id="createFolderModal" tabindex="-1" aria-labelledby="createFolderModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="createFolderModalLabel">Create New Compliance Folder</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<form asp-action="CreateFolder" method="post">
+				<div class="modal-body">
+					<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+					<div class="mb-3">
+						<label asp-for="Name" class="form-label"></label>
+						<input asp-for="Name" class="form-control" />
+						<span asp-validation-for="Name" class="text-danger"></span>
+					</div>
+
+					<div class="mb-3">
+						<label asp-for="Description" class="form-label"></label>
+						<textarea asp-for="Description" class="form-control"></textarea>
+						<span asp-validation-for="Description" class="text-danger"></span>
+					</div>
+
+					<div class="mb-3">
+						<label asp-for="ComplianceType" class="form-label"></label>
+						<select asp-for="ComplianceType" class="form-select" asp-items="@(new SelectList(ViewBag.ComplianceTypes))">
+							<option value="">-- Select Compliance Type --</option>
+						</select>
+						<span asp-validation-for="ComplianceType" class="text-danger"></span>
+					</div>
+
+					<div class="mb-3">
+						<label for="assignedUsers" class="form-label">Assigned Users</label>
+						<select id="assignedUsers" name="AssignedUsers" class="form-select" multiple>
+							@foreach (var user in ViewBag.AvailableUsers)
+							{
+								<option value="@user">@user</option>
+							}
+						</select>
+						<small class="form-text text-muted">Select users who will be responsible for this folder.</small>
+					</div>
+
+					<hr />
+					<h5>Required Documents</h5>
+					<div id="requiredDocumentsContainer">
+						<div class="row mb-2 required-document-item">
+							<div class="col-md-5">
+								<input type="text" name="RequiredDocuments[0].DocumentName" class="form-control" placeholder="Document Name" />
+							</div>
+							<div class="col-md-6">
+								<input type="text" name="RequiredDocuments[0].Description" class="form-control" placeholder="Description (Optional)" />
+							</div>
+							<div class="col-md-1 d-flex align-items-center">
+								<button type="button" class="btn btn-outline-danger btn-sm remove-required-doc" style="display:none;"><i class="fas fa-times"></i></button>
+							</div>
+						</div>
+					</div>
+					<button type="button" id="addRequiredDocument" class="btn btn-outline-secondary btn-sm mt-2">
+						<i class="fas fa-plus"></i> Add Required Document
+					</button>
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					<button type="submit" class="btn btn-primary">Create Folder</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		$(document).ready(function() {
+			let reqDocIndex = 1;
+
+			$('#addRequiredDocument').click(function() {
+				const newRow = `
+					<div class="row mb-2 required-document-item">
+						<div class="col-md-5">
+							<input type="text" name="RequiredDocuments[${reqDocIndex}].DocumentName" class="form-control" placeholder="Document Name" required />
+						</div>
+						<div class="col-md-6">
+							<input type="text" name="RequiredDocuments[${reqDocIndex}].Description" class="form-control" placeholder="Description (Optional)" />
+						</div>
+						<div class="col-md-1 d-flex align-items-center">
+							<button type="button" class="btn btn-outline-danger btn-sm remove-required-doc"><i class="fas fa-times"></i></button>
+						</div>
+					</div>
+				`;
+				$('#requiredDocumentsContainer').append(newRow);
+				reqDocIndex++;
+				// Show remove button for all items if more than one
+				$('.remove-required-doc').show();
+				if ($('.required-document-item').length === 1) {
+					$('.remove-required-doc').hide();
+				}
+			});
+
+			$(document).on('click', '.remove-required-doc', function() {
+				$(this).closest('.required-document-item').remove();
+				// Reindex the remaining elements
+				$('#requiredDocumentsContainer .required-document-item').each(function(index) {
+					$(this).find('[name^="RequiredDocuments"]').each(function() {
+						const currentName = $(this).attr('name');
+						const newName = currentName.replace(/\[\d+\]/, `[${index}]`);
+						$(this).attr('name', newName);
+					});
+				});
+				reqDocIndex--;
+				// Hide remove button if only one item remains
+				if ($('.required-document-item').length === 1) {
+					$('.remove-required-doc').hide();
+				}
+			});
+
+			// Initially hide remove button if only one item
+			if ($('.required-document-item').length === 1) {
+				$('.remove-required-doc').hide();
+			}
+		});
+	</script>
+}
