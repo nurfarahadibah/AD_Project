@@ -1,0 +1,269 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.JenisForm>
+@{
+	ViewData["Title"] = "Form Builder - SmartComply";
+	var distinctCategories = Model
+		.Where(f => f.ComplianceCategory != null)
+		.Select(f => f.ComplianceCategory)
+		.DistinctBy(c => c.Id)
+		.OrderBy(c => c.Name)
+		.ToList();
+
+	var selectedComplianceCategoryId = Context.Request.Query["complianceCategoryId"].ToString();
+	var selectedFormStatus = Context.Request.Query["formStatus"].ToString();
+	var currentSortOrder = Context.Request.Query["sortOrder"].ToString();
+
+	// Calculate counts for the mini-dashboard
+	var allFormsCount = Model.Count();
+	var draftFormsCount = Model.Count(f => f.Status == FormStatus.Draft);
+	var publishedFormsCount = Model.Count(f => f.Status == FormStatus.Published);
+	var archivedFormsCount = Model.Count(f => f.Status == FormStatus.Archived);
+	var currentTenantId = ViewBag.CurrentTenantId as string;
+}
+
+@* IMPORTANT FIX: No longer strictly needed for deleteFormCompletely if using HTML form,
+    but keep for other potential JS calls requiring it if any. *@
+@Html.AntiForgeryToken()
+
+<div class="container-fluid">
+	<div class="row mb-4">
+		<div class="col-md-8">
+			@if (!string.IsNullOrEmpty(currentTenantId))
+			{
+				<small class="text-info">Current Tenant: <strong>@currentTenantId</strong></small>
+			}
+			else
+			{
+				<small class="text-danger">Current Tenant: (Not Identified)</small>
+			}
+		</div>
+		
+		
+	</div>
+	<div class="row">
+		<div class="col-12">
+			<div class="d-flex justify-content-between align-items-center mb-4">
+				<h1 class="h3">Form Builder Dashboard</h1>
+				<a href="@Url.Action("CreateForm")" class="btn btn-primary">
+					<i class="fas fa-plus me-2"></i>Create New Form
+				</a>
+			</div>
+
+			<div class="row mb-4">
+				<div class="col-md-3">
+					<div class="card bg-primary text-white text-center">
+						<div class="card-body">
+							<h5 class="card-title">All Forms</h5>
+							<p class="card-text fs-3">@allFormsCount</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card bg-info text-dark text-center">
+						<div class="card-body">
+							<h5 class="card-title">Draft Forms</h5>
+							<p class="card-text fs-3">@draftFormsCount</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card bg-success text-white text-center">
+						<div class="card-body">
+							<h5 class="card-title">Published Forms</h5>
+							<p class="card-text fs-3">@publishedFormsCount</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card bg-secondary text-white text-center">
+						<div class="card-body">
+							<h5 class="card-title">Archived Forms</h5>
+							<p class="card-text fs-3">@archivedFormsCount</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card mb-4">
+				<div class="card-header">
+					<h5 class="mb-0">Filter Forms</h5>
+				</div>
+				<div class="card-body">
+					<form asp-action="Index" method="get" class="row g-3 align-items-end">
+						<div class="col-md-4">
+							<label for="complianceCategoryFilter" class="form-label">Compliance Category</label>
+							<select id="complianceCategoryFilter" name="complianceCategoryId" class="form-select">
+								<option value="">All Categories</option>
+								@foreach (var category in distinctCategories)
+								{
+									<option value="@category.Id" selected="@(selectedComplianceCategoryId == category.Id.ToString())">
+										@category.Name
+									</option>
+								}
+							</select>
+						</div>
+						<div class="col-md-3">
+							<label for="formStatusFilter" class="form-label">Form Status</label>
+							<select id="formStatusFilter" name="formStatus" class="form-select">
+								<option value="">All Statuses</option>
+								@foreach (var status in Enum.GetValues(typeof(FormStatus)))
+								{
+									<option value="@status" selected="@(selectedFormStatus == status.ToString())">
+										@status.ToString()
+									</option>
+								}
+							</select>
+						</div>
+						<div class="col-md-auto">
+							<button type="submit" name="sortOrder" value="latest" class="btn btn-outline-info ms-2 @(currentSortOrder == "latest" ? "active" : "")">
+								<i class="fas fa-sort-amount-down-alt me-2"></i>Latest Forms
+							</button>
+							<button type="submit" class="btn btn-secondary">
+								<i class="fas fa-filter me-2"></i>Apply Filter
+							</button>
+							<a href="@Url.Action("Index")" class="btn btn-outline-secondary ms-2">
+								<i class="fas fa-sync-alt me-2"></i>Reset
+							</a>
+						</div>
+					</form>
+				</div>
+				<div class="card-footer pt-0">
+					<ul class="nav nav-tabs card-header-tabs">
+						<li class="nav-item">
+							<a class="nav-link @(string.IsNullOrEmpty(selectedFormStatus) ? "active" : "")"
+							   href="@Url.Action("Index", new { complianceCategoryId = selectedComplianceCategoryId, sortOrder = currentSortOrder, formStatus = "" })">
+								All
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link @(selectedFormStatus == FormStatus.Draft.ToString() ? "active" : "")"
+								 href="@Url.Action("Index", new { complianceCategoryId = selectedComplianceCategoryId, formStatus = FormStatus.Draft, sortOrder = currentSortOrder })">
+								Draft
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link @(selectedFormStatus == FormStatus.Published.ToString() ? "active" : "")"
+								 href="@Url.Action("Index", new { complianceCategoryId = selectedComplianceCategoryId, formStatus = FormStatus.Published, sortOrder = currentSortOrder })">
+								Published
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link @(selectedFormStatus == FormStatus.Archived.ToString() ? "active" : "")"
+								 href="@Url.Action("Index", new { complianceCategoryId = selectedComplianceCategoryId, formStatus = FormStatus.Archived, sortOrder = currentSortOrder })">
+								Archived
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			@if (!Model.Any())
+			{
+				<div class="text-center py-5">
+					<div class="mb-3">
+						<i class="fas fa-file-alt fa-3x text-muted"></i>
+					</div>
+					<h4 class="text-muted">No forms found matching your criteria</h4>
+					<p class="text-muted">Adjust your filters or create a new compliance audit form.</p>
+					<a href="@Url.Action("CreateForm")" class="btn btn-primary">Create Form</a>
+				</div>
+			}
+			else
+			{
+				<div class="row">
+					@foreach (var form in Model)
+					{
+						<div class="col-md-6 col-lg-4 mb-4">
+							<div class="card h-100">
+								<div class="card-body d-flex flex-column">
+									<div class="d-flex justify-content-between align-items-center mb-2">
+										<h5 class="card-title mb-0">@form.Name</h5>
+										@* Delete Form Completely - NOW USING A DEDICATED HTML FORM *@
+										<form asp-action="DeleteFormCompletely" method="post" asp-route-id="@form.FormTypeId" asp-antiforgery="true" class="d-inline-block">
+											<button type="submit" class="btn btn-sm btn-danger-soft p-1"
+													onclick="return confirm('WARNING: Are you absolutely sure you want to DELETE this form COMPLETELY from the database? This action cannot be undone and all associated data will be lost.');"
+													title="Delete Form Completely">
+												<i class="fas fa-trash-alt"></i>
+											</button>
+										</form>
+									</div>
+									<p class="card-text flex-grow-1">@form.Description</p>
+									<div class="mb-3">
+										<small class="text-muted d-block">
+											<i class="fas fa-building me-1"></i>
+											Category: @(form.ComplianceCategory?.Name ?? "N/A")
+										</small>
+										<small class="text-muted d-block">
+											<i class="fas fa-layer-group me-1"></i>
+											@form.Sections.Count sections
+										</small>
+										<small class="text-muted d-block">
+											<i class="fas fa-calendar me-1"></i>
+											Created @form.CreatedAt.ToString("MMM dd,yyyy")
+										</small>
+										<small class="d-block mt-2">
+											<span class="badge @(form.Status == FormStatus.Published ? "bg-success" : form.Status == FormStatus.Draft ? "bg-info text-dark" : "bg-secondary")">
+												<i class="fas fa-circle me-1" style="font-size: 0.7em;"></i>@form.Status.ToString()
+											</span>
+										</small>
+									</div>
+									<div class="btn-group w-100">
+										@if (form.Status != FormStatus.Archived)
+										{
+											<a href="@Url.Action("Builder", new { id = form.FormTypeId })"
+												 class="btn btn-outline-primary btn-sm">
+												<i class="fas fa-edit me-1"></i>Edit
+											</a>
+											<a href="@Url.Action("Preview", new { id = form.FormTypeId })"
+												 class="btn btn-outline-success btn-sm">
+												<i class="fas fa-eye me-1"></i>Preview
+											</a>
+										}
+										@if (form.Status != FormStatus.Archived)
+										{
+											@* Archive Form using a dedicated form submission *@
+											<form asp-action="UpdateFormStatus" method="post" asp-antiforgery="true" class="d-inline-block">
+												<input type="hidden" name="formTypeId" value="@form.FormTypeId" />
+												<input type="hidden" name="newStatus" value="@FormStatus.Archived" />
+												<button type="submit" class="btn btn-outline-secondary btn-sm"
+														onclick="return confirm('Are you sure you want to archive this form? It will no longer appear in active lists but can be restored later.');">
+													<i class="fas fa-archive me-1"></i>Archive
+												</button>
+											</form>
+										}
+										else
+										{
+											@* Restore Form using a dedicated form submission *@
+											<form asp-action="UpdateFormStatus" method="post" asp-antiforgery="true" class="d-inline-block">
+												<input type="hidden" name="formTypeId" value="@form.FormTypeId" />
+												<input type="hidden" name="newStatus" value="@FormStatus.Draft" /> @* Restore to Draft *@
+												<button type="submit" class="btn btn-outline-info btn-sm"
+														onclick="return confirm('Are you sure you want to restore this form to Draft status?');">
+													<i class="fas fa-undo me-1"></i>Restore
+												</button>
+											</form>
+										}
+									</div>
+								</div>
+							</div>
+						</div>
+					}
+				</div>
+			}
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+	<script>
+		// The deleteFormCompletely JavaScript function is no longer needed for the complete deletion button
+		// as it's now handled by a direct HTML form submission.
+		// Keep getAntiForgeryToken() if other JS parts of your application still use it.
+		function getAntiForgeryToken() {
+			const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+			if (tokenElement) {
+				return tokenElement.value;
+			}
+			console.error("Anti-forgery token not found. Please ensure @Html.AntiForgeryToken() is rendered in your _Layout.cshtml or at the top of the view.");
+			return null;
+		}
+	</script>
+}
