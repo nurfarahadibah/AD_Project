@@ -1,0 +1,69 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.ViewModels.UserRolesViewModel>
+
+@{
+	ViewData["Title"] = "User Role Assignment";
+}
+
+<div class="content-wrapper">
+	<div class="container-xxl flex-grow-1 container-p-y">
+		<h4 class="py-3 mb-4"><span class="text-muted fw-light">Access Control /</span> User Role Assignment</h4>
+
+		<div class="card">
+			<h5 class="card-header">Assign Roles to Users</h5>
+			<div class="card-datatable table-responsive">
+				<table class="datatables-users table border-top">
+					<thead>
+						<tr>
+							<th>User Name</th>
+							<th>Email</th>
+							<th>Roles</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (!Model.Any())
+						{
+							<tr>
+								<td colspan="4" class="text-center py-4 text-muted">No users found.</td>
+							</tr>
+						}
+						else
+						{
+							@foreach (var user in Model)
+							{
+								<tr>
+									<td>@user.UserName</td>
+									<td>@user.Email</td>
+									<td>
+										@if (user.Roles.Any())
+										{
+											@string.Join(", ", user.Roles)
+										}
+										else
+										{
+											<span class="text-muted">No roles assigned</span>
+										}
+									</td>
+									<td>
+										<a asp-action="ManageRoles" asp-controller="UserRoleAssignment" asp-route-userId="@user.UserId" class="btn btn-sm btn-label-secondary">
+											<i class="ri-edit-line me-1"></i> Manage Roles
+										</a>
+									</td>
+								</tr>
+							}
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+	<script>
+		const successMessage = '@TempData["SuccessMessage"]';
+		if (successMessage) {
+			alert(successMessage);
+		}
+	</script>
+}
