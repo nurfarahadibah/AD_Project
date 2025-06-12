@@ -1,0 +1,172 @@
+@model AspnetCoreMvcFull.Models.ViewModels.ItemConfigViewModel
+@using Newtonsoft.Json
+
+<form id="itemConfigForm">
+	@Html.AntiForgeryToken()
+	<input type="hidden" name="ItemId" value="@Model.ItemId" />
+	<input type="hidden" name="ItemType" value="@Model.ItemType" />
+
+	<div class="mb-3">
+		<label for="question" class="form-label">Question</label>
+		<input type="text" id="question" name="Question" class="form-control" value="@Model.Question" required />
+		<span class="text-danger" data-valmsg-for="Question"></span>
+	</div>
+
+	<div class="form-check mb-3">
+		<input class="form-check-input" type="checkbox" id="isRequired" name="IsRequired" value="true" @(Model.IsRequired ? "checked" : "")>
+		<label class="form-check-label" for="isRequired">
+			Required
+		</label>
+	</div>
+	<input type="hidden" name="IsRequired" value="false" /> @* Hidden field for unchecked checkbox *@
+
+	@if (Model.ItemType == AspnetCoreMvcFull.Models.ItemType.Text || Model.ItemType == AspnetCoreMvcFull.Models.ItemType.Number || Model.ItemType == AspnetCoreMvcFull.Models.ItemType.Textarea)
+	{
+		<div class="mb-3">
+			<label for="maxScore" class="form-label">Max Score (Optional)</label>
+			<input type="number" id="maxScore" name="MaxScore" class="form-control" value="@(Model.MaxScore.HasValue ? Model.MaxScore.Value.ToString() : "")" min="0" />
+			<span class="text-danger" data-valmsg-for="MaxScore"></span>
+		</div>
+	}
+
+	@if (Model.ItemType == AspnetCoreMvcFull.Models.ItemType.Radio || Model.ItemType == AspnetCoreMvcFull.Models.ItemType.Checkbox || Model.ItemType == AspnetCoreMvcFull.Models.ItemType.Dropdown)
+	{
+		<div class="mb-3">
+			<label class="form-label">Options</label>
+			<div id="optionsContainer">
+				@if (Model.Options != null && Model.Options.Any())
+				{
+					for (int i = 0; i < Model.Options.Count; i++)
+					{
+						<div class="input-group mb-2 option-item">
+							<input type="text" name="Options[@i]" class="form-control" value="@Model.Options[i]" required />
+							<button type="button" class="btn btn-outline-danger" onclick="removeOption(this)"><i class="ri-delete-bin-line"></i></button>
+						</div>
+					}
+				}
+			</div>
+			<button type="button" class="btn btn-outline-secondary btn-sm" onclick="addOption()">Add Option</button>
+		</div>
+	}
+
+	<div class="form-check mb-3">
+		<input class="form-check-input" type="checkbox" id="hasLooping" name="HasLooping" value="true" @(Model.HasLooping ? "checked" : "") onchange="toggleLoopingFields(this)">
+		<label class="form-check-label" for="hasLooping">
+			Enable Looping
+		</label>
+	</div>
+	<input type="hidden" name="HasLooping" value="false" /> @* Hidden field for unchecked checkbox *@
+
+	<div id="loopingFields" style="display: @(Model.HasLooping ? "block" : "none");">
+		<div class="mb-3">
+			<label for="loopCount" class="form-label">Loop Count</label>
+			<input type="number" id="loopCount" name="LoopCount" class="form-control" value="@(Model.LoopCount.HasValue ? Model.LoopCount.Value.ToString() : "")" min="1" />
+			<span class="text-danger" data-valmsg-for="LoopCount"></span>
+		</div>
+		<div class="mb-3">
+			<label for="loopLabel" class="form-label">Loop Label</label>
+			<input type="text" id="loopLabel" name="LoopLabel" class="form-control" value="@Model.LoopLabel" />
+			<span class="text-danger" data-valmsg-for="LoopLabel"></span>
+		</div>
+	</div>
+
+	<div class="d-flex justify-content-between mt-4">
+		<button type="submit" class="btn btn-primary">Save Changes</button>
+		<button type="button" class="btn btn-secondary" onclick="closeConfigPanel()">Close</button>
+	</div>
+</form>
+
+<script>
+	// These functions are scoped to the partial view's script
+	// and will be available after the partial is loaded.
+
+	function toggleLoopingFields(checkbox) {
+		const loopingFields = document.getElementById('loopingFields');
+		loopingFields.style.display = checkbox.checked ? 'block' : 'none';
+	}
+
+	function addOption() {
+		const optionsContainer = document.getElementById('optionsContainer');
+		const optionCount = optionsContainer.querySelectorAll('.option-item').length;
+		const newOptionHtml = `
+			<div class="input-group mb-2 option-item">
+				<input type="text" name="Options[${optionCount}]" class="form-control" placeholder="New Option" required />
+				<button type="button" class="btn btn-outline-danger" onclick="removeOption(this)"><i class="ri-delete-bin-line"></i></button>
+			</div>
+		`;
+		optionsContainer.insertAdjacentHTML('beforeend', newOptionHtml);
+	}
+
+	function removeOption(button) {
+		button.closest('.option-item').remove();
+		// Re-index options after removal to ensure correct binding on POST
+		reindexOptions();
+	}
+
+	function reindexOptions() {
+		const optionsContainer = document.getElementById('optionsContainer');
+		const optionInputs = optionsContainer.querySelectorAll('.option-item input[type="text"]');
+		optionInputs.forEach((input, index) => {
+			input.name = `Options[${index}]`;
+		});
+	}
+
+	document.getElementById('itemConfigForm').addEventListener('submit', async function (e) {
+		e.preventDefault();
+		const form = e.target;
+		const formData = new FormData(form);
+
+		// Convert formData to a plain object for JSON serialization
+		const data = {};
+		formData.forEach((value, key) => {
+			// Handle multiple values for the same key (e.g., checkbox for IsRequired)
+			if (key === 'IsRequired' || key === 'HasLooping') {
+				data[key] = value === 'true'; // Convert "true" string to boolean true
+			} else if (key.startsWith('Options[')) {
+				// Collect options into an array
+				const optionArray = data['Options'] || [];
+				optionArray.push(value);
+				data['Options'] = optionArray;
+			}
+			else {
+				data[key] = value;
+			}
+		});
+
+		// Ensure MaxScore and LoopCount are numbers or null
+		data.MaxScore = data.MaxScore ? parseInt(data.MaxScore, 10) : null;
+		data.LoopCount = data.LoopCount ? parseInt(data.LoopCount, 10) : null;
+
+		const response = await fetch('@Url.Action("UpdateItem", "FormBuilder")', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'RequestVerificationToken': form.querySelector('input[name="__RequestVerificationToken"]').value
+			},
+			body: JSON.stringify(data)
+		});
+
+		const result = await response.json();
+
+		if (result.success) {
+			showMessageBox('Item updated successfully!', 'success');
+			// Reload the page to reflect changes in the builder view
+			location.reload();
+		} else {
+			// Display validation errors or general error message
+			if (result.errors) {
+				// Clear previous validation messages
+				form.querySelectorAll('.text-danger').forEach(span => span.innerText = '');
+
+				for (const key in result.errors) {
+					const errorElement = form.querySelector(`[data-valmsg-for="${key}"]`);
+					if (errorElement) {
+						errorElement.innerText = result.errors[key].join(' ');
+					}
+				}
+			} else {
+				showMessageBox('Error updating item: ' + (result.message || 'Unknown error.'), 'error');
+			}
+		}
+	});
+</script>

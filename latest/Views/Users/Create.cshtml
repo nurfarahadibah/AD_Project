@@ -1,0 +1,70 @@
+@model AspnetCoreMvcFull.Models.ViewModels.UserCreateViewModel
+
+@{
+	ViewData["Title"] = "Create New User";
+}
+
+<div class="container">
+	
+	<div class="row justify-content-center">
+		<div class="col-md-6">
+			
+			<div class="card">
+				
+				<div class="card-header">
+					<h4 class="mb-0">Create New User</h4> 
+				</div>
+				<div class="card-body">
+					
+					<form asp-action="Create" method="post">
+						<div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div> 
+
+						<div class="mb-3 form-floating form-floating-outline">
+							<input asp-for="UserName" class="form-control" placeholder="Enter username" />
+							<label asp-for="UserName"></label>
+							<span asp-validation-for="UserName" class="text-danger"></span>
+						</div>
+
+						<div class="mb-3 form-floating form-floating-outline">
+							<input asp-for="Email" class="form-control" placeholder="Enter email" />
+							<label asp-for="Email"></label>
+							<span asp-validation-for="Email" class="text-danger"></span>
+						</div>
+
+						
+						<div class="mb-3 form-floating form-floating-outline">
+							<input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
+							<label asp-for="Password"></label>
+							<span asp-validation-for="Password" class="text-danger"></span>
+						</div>
+
+						
+						<div class="mb-4 form-floating form-floating-outline">
+							
+							<input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" />
+							<label asp-for="ConfirmPassword"></label>
+							<span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+						</div>
+
+						<div class="d-grid gap-2">
+							
+							<button type="submit" class="btn btn-primary">
+								Create
+							</button>
+							<a asp-action="Index" class="btn btn-outline-secondary">
+								
+								Back to List
+							</a>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}
