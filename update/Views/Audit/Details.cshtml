@@ -1,0 +1,164 @@
+@model AspnetCoreMvcFull.Models.AuditInstance
+
+@{
+    ViewData["Title"] = "Audit Details";
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Audit Instances</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Audit Details</li>
+        </ol>
+    </nav>
+
+    <h2>Audit Report: @Model.FormName</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Audit ID:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.AuditInstanceId)</dd>
+
+                <dt class="col-sm-4">Audit Date:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.AuditDate)</dd>
+
+                <dt class="col-sm-4">Auditor:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.AuditorName)</dd>
+
+                <dt class="col-sm-4">Form Name:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.FormName)</dd>
+
+                <dt class="col-sm-4">Branch:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.BranchName)</dd>
+            </dl>
+        </div>
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Total Score:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.TotalScore) / @Html.DisplayFor(model => model.TotalMaxScore)</dd>
+
+                <dt class="col-sm-4">Percentage Score:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.PercentageScore)%</dd>
+
+                <dt class="col-sm-4">Tenant ID:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.TenantId)</dd>
+
+                <dt class="col-sm-4">Status:</dt>
+                <dd class="col-sm-8">
+                    @{
+                        string badgeClass = "";
+                        switch (Model.Status)
+                        {
+                            case AspnetCoreMvcFull.Models.AuditStatus.Completed:
+                                badgeClass = "bg-success";
+                                break;
+                            case AspnetCoreMvcFull.Models.AuditStatus.Draft:
+                                badgeClass = "bg-secondary";
+                                break;
+                            case AspnetCoreMvcFull.Models.AuditStatus.NeedsCorrectiveAction:
+                                badgeClass = "bg-warning text-dark";
+                                break;
+                            case AspnetCoreMvcFull.Models.AuditStatus.NeedsFollowUp:
+                                badgeClass = "bg-info text-dark";
+                                break;
+                            default:
+                                badgeClass = "bg-light text-dark";
+                                break;
+                        }
+                    }
+                    <span class="badge @badgeClass">@Model.Status.ToString()</span>
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <h4 class="mt-4">Detailed Responses</h4>
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Question</th>
+                    <th>Submitted Value</th>
+                    <th>Score</th>
+                    <th>Max Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.AuditResponses != null && Model.AuditResponses.Any())
+                {
+                    var responseCount = 0;
+                    @foreach (var response in Model.AuditResponses.OrderBy(r => r.FormItemId).ThenBy(r => r.LoopIndex))
+                    {
+                        responseCount++;
+                        <tr class="@((response.MaxPossibleScore.HasValue && response.ScoredValue < response.MaxPossibleScore.Value) ? "table-warning" : "")">
+                            <td>@responseCount</td>
+                            <td>
+                                @response.FormItemQuestion
+                                @if (response.LoopIndex.HasValue)
+                                {
+                                    <small class="text-muted">(Instance @(response.LoopIndex.Value + 1))</small>
+                                }
+                            </td>
+                            <td>
+                                @{
+                                    string displayValue = string.IsNullOrWhiteSpace(response.ResponseValue) ? "N/A" : response.ResponseValue;
+                                    // Truncate long values like base64 strings (signatures/files)
+                                    if (displayValue.Length > 100)
+                                    {
+                                        displayValue = displayValue.Substring(0, 100) + "... (truncated)";
+                                    }
+                                }
+                                @displayValue
+                            </td>
+                            <td>@response.ScoredValue</td>
+                            <td>@response.MaxPossibleScore</td>
+                            <td>
+                                @if (response.MaxPossibleScore.HasValue && response.ScoredValue < response.MaxPossibleScore.Value)
+                                {
+                                    <span class="badge bg-warning text-dark">Partial Score</span>
+                                }
+                                else if (response.MaxPossibleScore.HasValue && response.ScoredValue == response.MaxPossibleScore.Value)
+                                {
+                                    <span class="badge bg-success">Full Score</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">N/A</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6" class="text-center">No detailed responses available.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a asp-action="Index" class="btn btn-secondary me-2">Back to Audit Instances</a>
+        @if (Model.AuditResponses.Any(r => r.MaxPossibleScore.HasValue && r.ScoredValue < r.MaxPossibleScore.Value))
+        {
+            <a asp-action="AddCorrectiveActions" asp-route-auditInstanceId="@Model.AuditInstanceId" class="btn btn-warning">Add Corrective Actions</a>
+        }
+        else
+        {
+            <div class="alert alert-success mt-3" role="alert">
+                All items achieved full marks! No corrective actions currently identified for this audit.
+            </div>
+        }
+    </div>
+</div>
+
+@section PageScripts {
+    <script>
+        // Optional: Add JavaScript for saving corrective action notes here.
+        // This would involve another POST action in your controller to update AuditResponses or a new CorrectiveAction entity.
+    </script>
+}

@@ -1,0 +1,470 @@
+@model AspnetCoreMvcFull.Models.ViewModels.RolesIndexViewModel
+
+@{
+    ViewData["Title"] = "Roles List";
+    // Access data directly from Model properties, no longer from ViewBag
+}
+
+<div class="content-wrapper">
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="mb-1">Roles List</h4>
+        <p class="mb-6">A role provided access to predefined menus and features so that depending on assigned role an administrator can have access to what user needs.</p>
+
+        <div class="row g-6">
+            @if (Model.RoleCards != null)
+            {
+                @foreach (var roleCard in Model.RoleCards)
+                {
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <p class="mb-0">Total @roleCard.UserCount users</p>
+                                    <ul class="list-unstyled d-flex align-items-center avatar-group mb-0">
+                                        @if (roleCard.UserCount > 0)
+                                        {
+                                            <li class="avatar pull-up">
+                                                <span class="avatar-initial rounded-circle bg-label-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="@roleCard.Name User">
+                                                    @roleCard.Name.Substring(0, 1).ToUpper()
+                                                </span>
+                                            </li>
+                                            @if (roleCard.UserCount > 1)
+                                            {
+                                                <li class="avatar">
+                                                    <span class="avatar-initial rounded-circle pull-up text-body" data-bs-toggle="tooltip" data-bs-placement="bottom" title="@(roleCard.UserCount - 1) more">
+                                                        +@(roleCard.UserCount - 1)
+                                                    </span>
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="role-heading">
+                                        <h5 class="mb-1">@roleCard.Name</h5>
+                                        <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#addRoleModal" class="role-edit-modal" data-role-id="@roleCard.Id">
+                                            <p class="mb-0">Edit Role</p>
+                                        </a>
+                                    </div>
+                                    <a href="javascript:void(0);" class="text-secondary"><i class="ri-file-copy-line ri-22px"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+        <div class="col-12 mt-6">
+            <h4 class="mb-1">Total users with their roles</h4>
+            <p class="mb-0">Find all of your company’s administrator accounts and their associate roles.</p>
+        </div>
+
+        @* START: Applied design from User Accounts table for the Roles List table *@
+        <div class="card shadow-sm rounded-3 mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center bg-light py-3">
+                <h5 class="card-title fw-bold text-dark mb-0">Users by Role</h5>
+                @* <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#addRoleModal" class="btn btn-primary shadow-sm"> *@
+                @*     <i class="fas fa-plus-circle me-2"></i> Create New Role *@
+                @* </a> *@
+            </div>
+            <div class="card-body p-4">
+
+                @if (ViewBag.SuccessMessage != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @ViewBag.SuccessMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @* Filtering and Search Section *@
+                <div class="mb-4">
+                    <form id="userTableFilterForm" asp-action="Index" asp-controller="Roles" method="get" class="d-flex flex-wrap align-items-end gap-3">
+                        <div class="flex-grow-1">
+                            <label for="selectRole" class="form-label mb-1">Filter by Role:</label>
+                            <select id="selectRole" name="selectRole" class="form-select shadow-sm" asp-for="SelectedRole">
+                                @foreach (var role in Model.AvailableRoles)
+                                {
+                                    <option value="@role.Value">@role.Text</option>
+                                }
+                            </select>
+                        </div>
+                        @* Removed Tenant Filter as it's not in RolesIndexViewModel *@
+                        <div class="flex-grow-2">
+                            <label for="searchUser" class="form-label mb-1">Search by Username/Email:</label>
+                            <input type="text" id="searchUser" name="searchUser" class="form-control shadow-sm" placeholder="Enter username or email..." asp-for="SearchUser" />
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-secondary shadow-sm">
+                                <i class="ri-filter-line me-1"></i> Apply Filters
+                            </button>
+                            <a asp-action="Index" asp-controller="Roles" class="btn btn-outline-secondary shadow-sm">
+                                <i class="ri-refresh-line me-1"></i> Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                @* Removed Status Filter Tabs as they are for User status, not role-user associations *@
+
+                <div class="table-responsive">
+                    <table id="rolesUsersTable" class="table table-striped table-hover w-100">
+                        <thead>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.UserRolesList.First().UserName)</th>
+                                <th>@Html.DisplayNameFor(model => model.UserRolesList.First().Email)</th>
+                                <th>@Html.DisplayNameFor(model => model.UserRolesList.First().Roles)</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                            @if (Model.UserRolesList == null || !Model.UserRolesList.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No users found for the selected criteria.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var user in Model.UserRolesList)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar me-3">
+                                                    <span class="avatar-initial rounded-circle bg-label-secondary">
+                                                        @user.UserName.Substring(0, 1).ToUpper()
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex flex-column">
+                                                    <h6 class="text-truncate mb-0">@user.UserName</h6>
+                                                    <small class="text-truncate text-muted">@user.Email</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@Html.DisplayFor(modelItem => user.Email)</td>
+                                        <td>
+                                            @if (user.Roles.Any())
+                                            {
+                                                @string.Join(", ", user.Roles)
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">No Role</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <a asp-controller="UserRoleAssignment" asp-action="ManageRoles" asp-route-userId="@user.UserId"
+                                               class="btn btn-sm btn-icon btn-outline-secondary" title="Manage Roles">
+                                                <i class="ri-edit-line"></i>
+                                            </a>
+                                            @* Add other role-specific actions if needed, styled similarly *@
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+                        @{
+                            var startEntry = Model.TotalUsers > 0 ? (Model.CurrentPage - 1) * Model.ShowEntries + 1 : 0;
+                            var endEntry = Math.Min(Model.CurrentPage * Model.ShowEntries, Model.TotalUsers);
+                        }
+                        Showing @startEntry to @endEntry of @Model.TotalUsers entries
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="javascript:void(0);" data-page="@(Model.CurrentPage - 1)">
+                                        <i class="tf-icon ri-arrow-left-s-line"></i>
+                                    </a>
+                                </li>
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="javascript:void(0);" data-page="@i">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" href="javascript:void(0);" data-page="@(Model.CurrentPage + 1)">
+                                        <i class="tf-icon ri-arrow-right-s-line"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @* END: Applied design from User Accounts table *@
+    </div>
+    <div class="modal fade" id="addRoleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-simple modal-dialog-centered modal-add-new-role">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="text-center mb-6">
+                        <h4 class="role-title mb-2 pb-0" id="roleModalTitle">Add New Role</h4>
+                        <p>Set role permissions</p>
+                    </div>
+                    <form id="addRoleForm" class="row g-3" asp-action="AddEditRole" asp-controller="Roles" method="post">
+                        <input type="hidden" id="modalRoleId" name="Id" value="" />
+                        <div class="col-12 mb-3">
+                            <div class="form-floating form-floating-outline">
+                                <input type="text" id="modalRoleName" name="Name" class="form-control" placeholder="Enter a role name" tabindex="-1" required />
+                                <label for="modalRoleName">Role Name</label>
+                            </div>
+                            <span asp-validation-for="AddEditRoleForm.Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-12">
+                            <h5>Role Permissions</h5>
+                            <div class="table-responsive">
+                                <table class="table table-flush-spacing">
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-nowrap fw-medium">Administrator Access <i class="ri-information-line" data-bs-toggle="tooltip" data-bs-placement="top" title="Allows a full access to the system"></i></td>
+                                            <td>
+                                                <div class="d-flex justify-content-end">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="selectAll" />
+                                                        <label class="form-check-label" for="selectAll">
+                                                            Select All
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @if (Model.AddEditRoleForm.Permissions != null)
+                                        {
+                                            @for (int i = 0; i < Model.AddEditRoleForm.Permissions.Count; i++)
+                                            {
+                                                var permission = Model.AddEditRoleForm.Permissions[i];
+                                                var checkboxId = $"permission_{permission.Name.Replace(" ", "_").Replace("(", "").Replace(")", "")}";
+                                                <tr>
+                                                    <td class="text-nowrap fw-medium">
+                                                        @permission.Name
+                                                        @if (permission.Name.Contains("Management"))
+                                                        {
+                                                            <i class="ri-information-line" data-bs-toggle="tooltip" data-bs-placement="top" title="Manage @permission.Name.Replace(" Management", "")"></i>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex justify-content-end">
+                                                            <div class="form-check">
+                                                                <input type="hidden" name="AddEditRoleForm.Permissions[@i].Name" value="@permission.Name" />
+                                                                <input class="form-check-input" type="checkbox" name="AddEditRoleForm.Permissions[@i].IsSelected" value="true" id="@checkboxId" />
+                                                                <label class="form-check-label" for="@checkboxId">
+                                                                    Select
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary me-3">Submit</button>
+                            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    @* Remix Icons CSS *@
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    @* Font Awesome *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    @* Datatables CSS *@
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    @* jQuery (if not already loaded) - Datatables requires jQuery *@
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    @* Datatables JS *@
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTables for the "Users by Role" table
+            // Note: We are disabling DataTables' built-in pagination, search, and length change
+            // because the page uses server-side filtering and pagination via form submission.
+            $('#rolesUsersTable').DataTable({
+                "paging": false,          // Disable DataTables pagination
+                "searching": false,       // Disable DataTables search box
+                "ordering": true,         // Enable sorting on columns (client-side)
+                "info": false,            // Disable DataTables info display
+                "lengthChange": false,    // Disable changing number of entries per page
+            });
+
+            // For Bootstrap 5 alerts to auto-dismiss or be manually dismissible
+            var alertList = document.querySelectorAll('.alert')
+            alertList.forEach(function (alert) {
+                new bootstrap.Alert(alert)
+            })
+
+            // --- Existing JavaScript for Role Cards (Edit Role Modal) ---
+            document.querySelectorAll('.role-edit-modal').forEach(link => {
+                link.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    const roleId = this.dataset.roleId; // Get roleId from data attribute
+                    const modal = new bootstrap.Modal(document.getElementById('addRoleModal'));
+                    const modalTitle = document.getElementById('roleModalTitle');
+                    const addRoleForm = document.getElementById('addRoleForm');
+                    const modalRoleNameInput = document.getElementById('modalRoleName');
+                    const modalRoleIdInput = document.getElementById('modalRoleId');
+
+                    modalTitle.textContent = 'Edit Role'; // Change modal title
+                    addRoleForm.action = '@Url.Action("AddEditRole", "Roles")'; // Ensure form submits to edit action
+
+                    if (roleId) {
+                        try {
+                            const response = await fetch(`/Roles/GetRoleForEditModal?roleId=${roleId}`);
+                            if (!response.ok) {
+                                throw new Error('Failed to fetch role details.');
+                            }
+                            const roleData = await response.json();
+
+                            modalRoleIdInput.value = roleData.id;
+                            modalRoleNameInput.value = roleData.name;
+
+                            // Populate permissions checkboxes
+                            // Reset all checkboxes first
+                            document.querySelectorAll('#addRoleForm input[type="checkbox"]').forEach(checkbox => {
+                                if (checkbox.id !== 'selectAll') {
+                                    checkbox.checked = false; // Uncheck all
+                                }
+                            });
+                            document.getElementById('selectAll').checked = false; // Uncheck select all as well
+
+                            // Set selected permissions
+                            roleData.permissions.forEach(permission => {
+                                // Reconstruct the ID based on how it's generated in the Razor view
+                                const checkboxId = `permission_${permission.name.replace(/\s/g, '_').replace(/[^a-zA-Z0-9_]/g, '')}`;
+                                const checkbox = document.getElementById(checkboxId);
+                                if (checkbox) {
+                                    checkbox.checked = permission.isSelected;
+                                }
+                            });
+
+                            modal.show();
+                        } catch (error) {
+                            console.error('Error fetching role details:', error);
+                            alert('Could not load role details. Please try again.');
+                        }
+                    }
+                });
+            });
+
+            // "Select All" permissions checkbox logic (for the modal)
+            const selectAllCheckbox = document.getElementById('selectAll');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function () {
+                    document.querySelectorAll('#addRoleForm input[type="checkbox"]').forEach(checkbox => {
+                        if (checkbox.id !== 'selectAll') {
+                            checkbox.checked = this.checked;
+                        }
+                    });
+                });
+            }
+
+            // Handle success/error messages from TempData
+            // Use the direct value from TempData if available (ensuring it's not 'null' string)
+            const successMessageRaw = '@Html.Raw(TempData["SuccessMessage"])';
+            const errorMessageRaw = '@Html.Raw(TempData["ErrorMessage"])';
+
+            if (successMessageRaw && successMessageRaw !== '') {
+                // Implement Materio's toastr/alert system if available, else use alert
+                // For Bootstrap alerts, they are already handled by the general alert dismissible script
+                // If you have a custom toastr system, trigger it here.
+                // Example with Bootstrap alert:
+                // var successAlert = '<div class="alert alert-success alert-dismissible fade show" role="alert">' + successMessageRaw + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                // $('.card-body').prepend(successAlert); // Or a specific alert container
+                console.log("Success: " + successMessageRaw); // For debugging
+            }
+            if (errorMessageRaw && errorMessageRaw !== '') {
+                // Example with Bootstrap alert:
+                // var errorAlert = '<div class="alert alert-danger alert-dismissible fade show" role="alert">' + errorMessageRaw + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                // $('.card-body').prepend(errorAlert); // Or a specific alert container
+                alert('Error: ' + errorMessageRaw); // Fallback for simple alert
+            }
+
+
+            // --- JavaScript for the User Table Filters (Show, Export, Search, Select Role) ---
+            const userTableFilterForm = document.getElementById('userTableFilterForm');
+            const showEntriesSelect = document.getElementById('showEntries'); // This element is now removed from the HTML for roles table
+            const searchUserInput = document.getElementById('searchUser');
+            const selectRoleDropdown = document.getElementById('selectRole');
+
+            // Function to submit the form, optionally with a specific page number
+            function submitUserTableForm(page = 1) {
+                if (userTableFilterForm) {
+                    // Update hidden input for page number if it exists, or create it
+                    let pageInput = document.getElementById('currentPageInput');
+                    if (!pageInput) {
+                        pageInput = document.createElement('input');
+                        pageInput.type = 'hidden';
+                        pageInput.id = 'currentPageInput';
+                        pageInput.name = 'page';
+                        userTableFilterForm.appendChild(pageInput);
+                    }
+                    pageInput.value = page;
+
+                    userTableFilterForm.submit();
+                }
+            }
+
+            // The 'showEntriesSelect' is removed from the roles table's filter section
+            // so this listener is effectively unused if you strictly follow the new HTML.
+            // if (showEntriesSelect) {
+            //     showEntriesSelect.addEventListener('change', () => submitUserTableForm(1)); // Reset to page 1 on entries change
+            // }
+
+            if (searchUserInput) {
+                searchUserInput.addEventListener('keyup', function (event) {
+                    if (event.key === 'Enter') {
+                        submitUserTableForm(1); // Reset to page 1 on search
+                    }
+                });
+            }
+
+            if (selectRoleDropdown) {
+                selectRoleDropdown.addEventListener('change', () => submitUserTableForm(1)); // Reset to page 1 on role change
+            }
+
+            // Pagination links click handler
+            document.querySelectorAll('.page-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const pageNum = this.dataset.page;
+                    if (pageNum) {
+                        submitUserTableForm(parseInt(pageNum));
+                    }
+                });
+            });
+
+            // Removed Export button and related JS as it's not present in the user management table's filter section.
+            // Removed client-side checkbox logic for selecting all users as the columns are removed.
+        });
+    </script>
+
+    @* Ensure you have Bootstrap's JS bundle loaded for alerts to dismiss if not already global *@
+    @* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> *@
+
+    <partial name="_ValidationScriptsPartial" />
+}
