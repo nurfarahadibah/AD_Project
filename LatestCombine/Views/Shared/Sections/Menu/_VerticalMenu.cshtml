@@ -1,5 +1,5 @@
 @{
-	TempData.Keep();
+	// TempData.Keep(); // Uncomment if you actively need TempData to persist across redirects
 	string? currentPage = ViewContext.HttpContext.Request.Path;
 	// No need for a userRole variable if using User.IsInRole() directly
 }
@@ -29,15 +29,23 @@
 					<div>Dashboards</div>
 				</a>
 			</li>
-			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
-				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
-					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
-					<div>Filing and Document Repository</div>
+			@* Added from Version 1 - Manage Compliance Category *@
+			<li class='menu-item@(currentPage.StartsWith("/ComplianceCategories") ? " active" : "")'>
+				<a asp-controller="ComplianceCategories" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-bookmark-2-line"></i>
+					<div>Manage Compliance Category</div>
 				</a>
 			</li>
+			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
+				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-folder-open-line"></i>
+					<div>Filing Repository</div>
+				</a>
+			</li>
+			@* Using ri-file-list-line for Form Builder as it's more specific *@
 			<li class='menu-item@(currentPage.StartsWith("/FormBuilder") ? " active" : "")'>
 				<a asp-controller="FormBuilder" asp-action="Index" class="menu-link">
-					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
+					<i class="menu-icon tf-icons ri-file-list-line"></i>
 					<div>Dynamic Form Builder</div>
 				</a>
 			</li>
@@ -112,7 +120,7 @@
 			</li>
 			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
 				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
-					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
+					<i class="menu-icon tf-icons ri-folder-open-line"></i>
 					<div>Filing and Document Repository</div>
 				</a>
 			</li>
@@ -163,15 +171,16 @@
 					<div>Dashboards</div>
 				</a>
 			</li>
-            <li class='menu-item@(currentPage.StartsWith("/Audit") ? " active" : "")'>
-                <a asp-controller="Audit" asp-action="Index" class="menu-link">
-                    <i class="menu-icon tf-icons ri-format-clear"></i>
-                    <div>Audit</div>
-                </a>
-            </li>
+			@* Added from Version 2 - Audit Menu for User Role *@
+			<li class='menu-item@(currentPage.StartsWith("/Audit") ? " active" : "")'>
+				<a asp-controller="Audit" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-format-clear"></i>
+					<div>Audit</div>
+				</a>
+			</li>
 			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
 				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
-					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
+					<i class="menu-icon tf-icons ri-folder-open-line"></i>
 					<div>Filing and Document Repository</div>
 				</a>
 			</li>

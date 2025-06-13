@@ -45,6 +45,8 @@ builder.Services.AddSession(options =>
 });
 // --- END Service Registration ---
 
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 var app = builder.Build(); // Service collection is now built and locked
 
 // --- HTTP Request Pipeline Configuration ---
