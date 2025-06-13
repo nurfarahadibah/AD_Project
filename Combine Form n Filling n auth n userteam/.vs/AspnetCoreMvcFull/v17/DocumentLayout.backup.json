@@ -1,0 +1,228 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\controllers\\rolescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:controllers\\rolescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\views\\shared\\sections\\menu\\_verticalmenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:views\\shared\\sections\\menu\\_verticalmenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\controllers\\userroleassignmentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:controllers\\userroleassignmentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\areas\\identity\\pages\\account\\register.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:areas\\identity\\pages\\account\\register.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\controllers\\dashboardscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:controllers\\dashboardscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\areas\\identity\\pages\\account\\login.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:areas\\identity\\pages\\account\\login.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\controllers\\pagescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:controllers\\pagescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\models\\tenant.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:models\\tenant.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\services\\tenantservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:services\\tenantservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|c:\\users\\asus\\source\\repos\\combine form n filling\\views\\shared\\_itempreview.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B3F387EE-69F2-410B-BF7C-D48AD6403234}|AspnetCoreMvcFull.csproj|solutionrelative:views\\shared\\_itempreview.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "UserRoleAssignmentController.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\UserRoleAssignmentController.cs",
+              "RelativeDocumentMoniker": "Controllers\\UserRoleAssignmentController.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\UserRoleAssignmentController.cs",
+              "RelativeToolTip": "Controllers\\UserRoleAssignmentController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T16:56:25.343Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RolesController.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\RolesController.cs",
+              "RelativeDocumentMoniker": "Controllers\\RolesController.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\RolesController.cs",
+              "RelativeToolTip": "Controllers\\RolesController.cs",
+              "ViewState": "AgIAAOkAAAAAAAAAAAAiwAwBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T16:54:47.339Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "UsersController.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\UsersController.cs",
+              "RelativeDocumentMoniker": "Controllers\\UsersController.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\UsersController.cs",
+              "RelativeToolTip": "Controllers\\UsersController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFQAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T16:48:50.712Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "_VerticalMenu.cshtml",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Views\\Shared\\Sections\\Menu\\_VerticalMenu.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\Sections\\Menu\\_VerticalMenu.cshtml",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Views\\Shared\\Sections\\Menu\\_VerticalMenu.cshtml",
+              "RelativeToolTip": "Views\\Shared\\Sections\\Menu\\_VerticalMenu.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAPEAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-08T16:42:52.728Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Register.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Areas\\Identity\\Pages\\Account\\Register.cshtml.cs",
+              "RelativeDocumentMoniker": "Areas\\Identity\\Pages\\Account\\Register.cshtml.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Areas\\Identity\\Pages\\Account\\Register.cshtml.cs",
+              "RelativeToolTip": "Areas\\Identity\\Pages\\Account\\Register.cshtml.cs",
+              "ViewState": "AgIAAKAAAAAAAAAAAAAcwLUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T15:10:42.434Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAGgAAAAAAAAAAAAQwHkAAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T15:05:41.979Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Login.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Areas\\Identity\\Pages\\Account\\Login.cshtml.cs",
+              "RelativeDocumentMoniker": "Areas\\Identity\\Pages\\Account\\Login.cshtml.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Areas\\Identity\\Pages\\Account\\Login.cshtml.cs",
+              "RelativeToolTip": "Areas\\Identity\\Pages\\Account\\Login.cshtml.cs",
+              "ViewState": "AgIAAIAAAAAAAAAAAAAQwKEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T15:00:26.169Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "PagesController.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\PagesController.cs",
+              "RelativeDocumentMoniker": "Controllers\\PagesController.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\PagesController.cs",
+              "RelativeToolTip": "Controllers\\PagesController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T14:48:10.212Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "DashboardsController.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\DashboardsController.cs",
+              "RelativeDocumentMoniker": "Controllers\\DashboardsController.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Controllers\\DashboardsController.cs",
+              "RelativeToolTip": "Controllers\\DashboardsController.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAmwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T14:46:49.44Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "_ItemPreview.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Views\\Shared\\_ItemPreview.cshtml.cs",
+              "RelativeDocumentMoniker": "Views\\Shared\\_ItemPreview.cshtml.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Views\\Shared\\_ItemPreview.cshtml.cs",
+              "RelativeToolTip": "Views\\Shared\\_ItemPreview.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T14:34:08.097Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "TenantService.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Services\\TenantService.cs",
+              "RelativeDocumentMoniker": "Services\\TenantService.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Services\\TenantService.cs",
+              "RelativeToolTip": "Services\\TenantService.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T14:28:39.057Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Tenant.cs",
+              "DocumentMoniker": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Models\\Tenant.cs",
+              "RelativeDocumentMoniker": "Models\\Tenant.cs",
+              "ToolTip": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\Models\\Tenant.cs",
+              "RelativeToolTip": "Models\\Tenant.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T14:27:04.328Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

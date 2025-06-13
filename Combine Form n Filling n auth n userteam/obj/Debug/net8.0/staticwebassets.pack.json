@@ -1,0 +1,437 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\css\\demo.css",
+      "PackagePath": "staticwebassets\\css\\demo.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\css\\site.css",
+      "PackagePath": "staticwebassets\\css\\site.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\avatars\\1.png",
+      "PackagePath": "staticwebassets\\img\\avatars\\1.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\avatars\\2.png",
+      "PackagePath": "staticwebassets\\img\\avatars\\2.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\avatars\\3.png",
+      "PackagePath": "staticwebassets\\img\\avatars\\3.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\avatars\\4.png",
+      "PackagePath": "staticwebassets\\img\\avatars\\4.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\avatars\\5.png",
+      "PackagePath": "staticwebassets\\img\\avatars\\5.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\avatars\\6.png",
+      "PackagePath": "staticwebassets\\img\\avatars\\6.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\avatars\\7.png",
+      "PackagePath": "staticwebassets\\img\\avatars\\7.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\backgrounds\\18.jpg",
+      "PackagePath": "staticwebassets\\img\\backgrounds\\18.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\1.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\1.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\11.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\11.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\12.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\12.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\13.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\13.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\17.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\17.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\18.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\18.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\19.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\19.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\2.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\2.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\20.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\20.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\3.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\3.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\4.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\4.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\5.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\5.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\elements\\7.jpg",
+      "PackagePath": "staticwebassets\\img\\elements\\7.jpg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\favicon\\favicon.ico",
+      "PackagePath": "staticwebassets\\img\\favicon\\favicon.ico"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\asana.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\asana.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\aws.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\aws.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\behance.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\behance.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\dribbble.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\dribbble.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\facebook.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\facebook.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\github.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\github.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\google.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\google.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\instagram.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\instagram.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\mailchimp.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\mailchimp.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\slack.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\slack.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\brands\\twitter.png",
+      "PackagePath": "staticwebassets\\img\\icons\\brands\\twitter.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\misc\\aviato.png",
+      "PackagePath": "staticwebassets\\img\\icons\\misc\\aviato.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\misc\\bitbank.png",
+      "PackagePath": "staticwebassets\\img\\icons\\misc\\bitbank.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\misc\\triangle-light.png",
+      "PackagePath": "staticwebassets\\img\\icons\\misc\\triangle-light.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\misc\\zipcar.png",
+      "PackagePath": "staticwebassets\\img\\icons\\misc\\zipcar.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\payments\\american-bank.png",
+      "PackagePath": "staticwebassets\\img\\icons\\payments\\american-bank.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\payments\\citi.png",
+      "PackagePath": "staticwebassets\\img\\icons\\payments\\citi.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\payments\\digital-ocean.png",
+      "PackagePath": "staticwebassets\\img\\icons\\payments\\digital-ocean.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\payments\\gumroad.png",
+      "PackagePath": "staticwebassets\\img\\icons\\payments\\gumroad.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\payments\\mastercard-2.png",
+      "PackagePath": "staticwebassets\\img\\icons\\payments\\mastercard-2.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\icons\\payments\\stripes.png",
+      "PackagePath": "staticwebassets\\img\\icons\\payments\\stripes.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\illustrations\\404.png",
+      "PackagePath": "staticwebassets\\img\\illustrations\\404.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\illustrations\\auth-basic-mask-light.png",
+      "PackagePath": "staticwebassets\\img\\illustrations\\auth-basic-mask-light.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\illustrations\\misc-mask-light.png",
+      "PackagePath": "staticwebassets\\img\\illustrations\\misc-mask-light.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\illustrations\\misc-under-maintenance.png",
+      "PackagePath": "staticwebassets\\img\\illustrations\\misc-under-maintenance.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\illustrations\\tree-3.png",
+      "PackagePath": "staticwebassets\\img\\illustrations\\tree-3.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\illustrations\\tree.png",
+      "PackagePath": "staticwebassets\\img\\illustrations\\tree.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\illustrations\\trophy.png",
+      "PackagePath": "staticwebassets\\img\\illustrations\\trophy.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\layouts\\layout-container-light.png",
+      "PackagePath": "staticwebassets\\img\\layouts\\layout-container-light.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\layouts\\layout-fluid-light.png",
+      "PackagePath": "staticwebassets\\img\\layouts\\layout-fluid-light.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\layouts\\layout-without-menu-light.png",
+      "PackagePath": "staticwebassets\\img\\layouts\\layout-without-menu-light.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\img\\layouts\\layout-without-navbar-light.png",
+      "PackagePath": "staticwebassets\\img\\layouts\\layout-without-navbar-light.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\config.js",
+      "PackagePath": "staticwebassets\\js\\config.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\dashboards-analytics.js",
+      "PackagePath": "staticwebassets\\js\\dashboards-analytics.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\extended-ui-perfect-scrollbar.js",
+      "PackagePath": "staticwebassets\\js\\extended-ui-perfect-scrollbar.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\form-basic-inputs.js",
+      "PackagePath": "staticwebassets\\js\\form-basic-inputs.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\main.js",
+      "PackagePath": "staticwebassets\\js\\main.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\pages-account-settings-account.js",
+      "PackagePath": "staticwebassets\\js\\pages-account-settings-account.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\site.js",
+      "PackagePath": "staticwebassets\\js\\site.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\ui-modals.js",
+      "PackagePath": "staticwebassets\\js\\ui-modals.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\ui-popover.js",
+      "PackagePath": "staticwebassets\\js\\ui-popover.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\js\\ui-toasts.js",
+      "PackagePath": "staticwebassets\\js\\ui-toasts.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\uploads\\07be17be-6c23-4e51-b4f9-1df54c5540b3_plot comparison dask.png",
+      "PackagePath": "staticwebassets\\uploads\\07be17be-6c23-4e51-b4f9-1df54c5540b3_plot comparison dask.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\uploads\\29d5a75d-71db-4fa5-9c7b-6ad315f1c333_throughput.png",
+      "PackagePath": "staticwebassets\\uploads\\29d5a75d-71db-4fa5-9c7b-6ad315f1c333_throughput.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\uploads\\5179d30e-34fa-49fe-b638-0869fc94ddc9_Nur Farah Adibah Assignment1 Presentation.pdf",
+      "PackagePath": "staticwebassets\\uploads\\5179d30e-34fa-49fe-b638-0869fc94ddc9_Nur Farah Adibah Assignment1 Presentation.pdf"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\uploads\\a52092f7-0e14-4fc0-a16b-905064112870_throughput.png",
+      "PackagePath": "staticwebassets\\uploads\\a52092f7-0e14-4fc0-a16b-905064112870_throughput.png"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\uploads\\tenantA\\5ebf5ed8-f43a-4210-89f6-c3818b926689_aws skillbuilder.jpeg",
+      "PackagePath": "staticwebassets\\uploads\\tenantA\\5ebf5ed8-f43a-4210-89f6-c3818b926689_aws skillbuilder.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\uploads\\tenantA\\67807862-3eff-4c14-a45c-0842f951af9e_Teh Tarik _ Malaysia_ (1).jpeg",
+      "PackagePath": "staticwebassets\\uploads\\tenantA\\67807862-3eff-4c14-a45c-0842f951af9e_Teh Tarik _ Malaysia_ (1).jpeg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\uploads\\tenantA\\f375ed82-c218-43f2-a210-fa40abcec50f_aws skillbuilder.jpeg",
+      "PackagePath": "staticwebassets\\uploads\\tenantA\\f375ed82-c218-43f2-a210-fa40abcec50f_aws skillbuilder.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\uploads\\tenantA\\f72a7fef-08b9-49f0-a2ba-6d87ed863b1e_aws skillbuilder.jpeg",
+      "PackagePath": "staticwebassets\\uploads\\tenantA\\f72a7fef-08b9-49f0-a2ba-6d87ed863b1e_aws skillbuilder.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\css\\core.css",
+      "PackagePath": "staticwebassets\\vendor\\css\\core.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\css\\pages\\page-account-settings.css",
+      "PackagePath": "staticwebassets\\vendor\\css\\pages\\page-account-settings.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\css\\pages\\page-auth.css",
+      "PackagePath": "staticwebassets\\vendor\\css\\pages\\page-auth.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\css\\pages\\page-icons.css",
+      "PackagePath": "staticwebassets\\vendor\\css\\pages\\page-icons.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\css\\pages\\page-misc.css",
+      "PackagePath": "staticwebassets\\vendor\\css\\pages\\page-misc.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\css\\theme-default.css",
+      "PackagePath": "staticwebassets\\vendor\\css\\theme-default.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\fonts\\remixicon\\remixicon.css",
+      "PackagePath": "staticwebassets\\vendor\\fonts\\remixicon\\remixicon.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\fonts\\remixicon\\remixicon.eot",
+      "PackagePath": "staticwebassets\\vendor\\fonts\\remixicon\\remixicon.eot"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\fonts\\remixicon\\remixicon.svg",
+      "PackagePath": "staticwebassets\\vendor\\fonts\\remixicon\\remixicon.svg"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\fonts\\remixicon\\remixicon.ttf",
+      "PackagePath": "staticwebassets\\vendor\\fonts\\remixicon\\remixicon.ttf"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\fonts\\remixicon\\remixicon.woff",
+      "PackagePath": "staticwebassets\\vendor\\fonts\\remixicon\\remixicon.woff"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\fonts\\remixicon\\remixicon.woff2",
+      "PackagePath": "staticwebassets\\vendor\\fonts\\remixicon\\remixicon.woff2"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\js\\bootstrap.js",
+      "PackagePath": "staticwebassets\\vendor\\js\\bootstrap.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\js\\helpers.js",
+      "PackagePath": "staticwebassets\\vendor\\js\\helpers.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\js\\menu.js",
+      "PackagePath": "staticwebassets\\vendor\\js\\menu.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\apex-charts\\apex-charts.css",
+      "PackagePath": "staticwebassets\\vendor\\libs\\apex-charts\\apex-charts.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\apex-charts\\apexcharts.js",
+      "PackagePath": "staticwebassets\\vendor\\libs\\apex-charts\\apexcharts.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\highlight\\highlight-github.css",
+      "PackagePath": "staticwebassets\\vendor\\libs\\highlight\\highlight-github.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\highlight\\highlight.css",
+      "PackagePath": "staticwebassets\\vendor\\libs\\highlight\\highlight.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\highlight\\highlight.js",
+      "PackagePath": "staticwebassets\\vendor\\libs\\highlight\\highlight.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\jquery\\jquery.js",
+      "PackagePath": "staticwebassets\\vendor\\libs\\jquery\\jquery.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\masonry\\masonry.js",
+      "PackagePath": "staticwebassets\\vendor\\libs\\masonry\\masonry.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\node-waves\\node-waves.css",
+      "PackagePath": "staticwebassets\\vendor\\libs\\node-waves\\node-waves.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\node-waves\\node-waves.js",
+      "PackagePath": "staticwebassets\\vendor\\libs\\node-waves\\node-waves.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\perfect-scrollbar\\perfect-scrollbar.css",
+      "PackagePath": "staticwebassets\\vendor\\libs\\perfect-scrollbar\\perfect-scrollbar.css"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\perfect-scrollbar\\perfect-scrollbar.js",
+      "PackagePath": "staticwebassets\\vendor\\libs\\perfect-scrollbar\\perfect-scrollbar.js"
+    },
+    {
+      "Id": "C:\\Users\\ASUS\\source\\repos\\Combine Form n Filling\\wwwroot\\vendor\\libs\\popper\\popper.js",
+      "PackagePath": "staticwebassets\\vendor\\libs\\popper\\popper.js"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.AspnetCoreMvcFull.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.AspnetCoreMvcFull.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.AspnetCoreMvcFull.props",
+      "PackagePath": "build\\AspnetCoreMvcFull.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.AspnetCoreMvcFull.props",
+      "PackagePath": "buildMultiTargeting\\AspnetCoreMvcFull.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.AspnetCoreMvcFull.props",
+      "PackagePath": "buildTransitive\\AspnetCoreMvcFull.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
