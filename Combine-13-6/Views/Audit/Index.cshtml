@@ -1,0 +1,120 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.AuditInstance>
+
+@{
+    ViewData["Title"] = "Audit Instances";
+    var availableForms = ViewData["AvailableForms"] as List<AspnetCoreMvcFull.Models.JenisForm>;
+}
+
+@section VendorStyles {
+    @* DataTables CSS *@
+        <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css" />
+}
+
+<h2>Audit Instances</h2>
+
+@if (ViewBag.IsUser != null && (bool)ViewBag.IsUser)
+{
+    <p>
+        <a asp-controller="Audit" asp-action="ListFormTemplates" class="btn btn-primary">Start New Audit</a>
+    </p>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="alert">
+        No audit instances have been recorded yet for your organization.
+    </div>
+}
+else
+{
+    <table id="auditInstancesTable" class="table table-striped table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>Audit ID</th> @* NEW COLUMN *@
+                    <th>@Html.DisplayNameFor(model => model.AuditDate)</th>
+                <th>@Html.DisplayNameFor(model => model.FormName)</th>
+                @*<th>Branch</th> NEW COLUMN (assuming BranchName property) *@
+                    <th>Status</th> @* NEW COLUMN (assuming Status property) *@
+                    <th>% Score</th> @* Adjusted for brevity *@
+                    <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.AuditInstanceId)</td> @* Display Audit ID *@
+                            <td>@Html.DisplayFor(modelItem => item.AuditDate)</td>
+                    <td>@Html.DisplayFor(modelItem => item.FormName)</td>
+                    @*<td>@Html.DisplayFor(modelItem => item.BranchName)</td> @* Display Branch Name *@
+                            <td>
+                        @{
+                            // Display status with a badge for better visibility
+                            string badgeClass = "";
+                            switch (item.Status)
+                            {
+                                case AspnetCoreMvcFull.Models.AuditStatus.Completed:
+                                    badgeClass = "bg-success";
+                                    break;
+                                case AspnetCoreMvcFull.Models.AuditStatus.Draft:
+                                    badgeClass = "bg-secondary";
+                                    break;
+                                case AspnetCoreMvcFull.Models.AuditStatus.NeedsCorrectiveAction:
+                                    badgeClass = "bg-warning text-dark";
+                                    break;
+                                case AspnetCoreMvcFull.Models.AuditStatus.NeedsFollowUp:
+                                    badgeClass = "bg-info text-dark";
+                                    break;
+                                default:
+                                    badgeClass = "bg-light text-dark";
+                                    break;
+                            }
+                        }
+                        <span class="badge @badgeClass">@item.Status.ToString()</span>
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.PercentageScore)%</td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton_@item.AuditInstanceId" data-bs-toggle="dropdown" aria-expanded="false">
+                                Actions
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton_@item.AuditInstanceId">
+                                <li><a class="dropdown-item" asp-controller="Audit" asp-action="Details" asp-route-id="@item.AuditInstanceId">View Details</a></li>
+                                @* Pointing "Corrective Action" to your dedicated AddCorrectiveActions action *@
+                                <li><a class="dropdown-item" asp-controller="Audit" asp-action="AddCorrectiveActions" asp-route-auditInstanceId="@item.AuditInstanceId">Corrective Action</a></li>
+                                <li><a class="dropdown-item" asp-controller="Audit" asp-action="FollowUpAudit" asp-route-auditInstanceId="@item.AuditInstanceId">Follow Up Audit</a></li>
+                                <li><hr class="dropdown-divider"></li> @* Separator *@
+                                <li><a class="dropdown-item" asp-controller="Audit" asp-action="Edit" asp-route-id="@item.AuditInstanceId">Edit</a></li>
+                                <li><a class="dropdown-item text-danger" asp-controller="Audit" asp-action="Delete" asp-route-id="@item.AuditInstanceId">Delete</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@section PageScripts {
+    @* jQuery is a prerequisite for DataTables *@
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    @* DataTables JS *@
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            $('#auditInstancesTable').DataTable({
+                "paging": true,       // Enable pagination
+                "ordering": true,     // Enable sorting
+                "info": true,         // Display info about the table
+                "searching": true     // Enable search box
+            });
+
+            // Optional: Bootstrap 5 dropdowns require Popper.js and Bootstrap JS Bundle
+            // Ensure you have these loaded in your _ContentNavbarLayout.cshtml or _Layout.cshtml
+            // <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+}
+</script>

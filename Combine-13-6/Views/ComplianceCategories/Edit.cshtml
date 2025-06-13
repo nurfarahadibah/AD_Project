@@ -1,0 +1,40 @@
+@model AspnetCoreMvcFull.Models.ViewModels.EditComplianceCategoryViewModel
+
+@{
+    ViewData["Title"] = "Edit Compliance Category";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Edit Compliance Category</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Code" class="form-label"></label>
+                <input asp-for="Code" class="form-control" />
+                <span asp-validation-for="Code" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary me-2">Save Changes</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section PageScripts {
+    <partial name="_ValidationScriptsPartial" />
+}

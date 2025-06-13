@@ -1,0 +1,172 @@
+@model AspnetCoreMvcFull.Models.ViewModels.FollowUpAuditViewModel
+
+@{
+    ViewData["Title"] = $"Follow Up Audit - {Model.FormName}";
+    Layout = "_ContentNavbarLayout";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Follow Up Audit: @Model.FormName</h2>
+                    <p class="text-muted">Original Audit ID: @Model.OriginalAuditInstanceId - @Model.FormDescription</p>
+                </div>
+            </div>
+
+            @if (!Model.ItemsForFollowUp.Any())
+            {
+                <div class="alert alert-success" role="alert">
+                    All items achieved full marks in the previous audit or no items currently require follow-up.
+                    <p><a asp-action="Details" asp-route-id="@Model.OriginalAuditInstanceId" class="btn btn-info btn-sm mt-2">Back to Original Audit Details</a></p>
+                </div>
+            }
+            else
+            {
+                <form id="followUpAuditForm" asp-action="SubmitFollowUpAudit" asp-controller="Audit" method="post" asp-antiforgery="true">
+                    <input type="hidden" name="OriginalAuditInstanceId" value="@Model.OriginalAuditInstanceId" />
+                    <input type="hidden" name="FormTypeId" value="@Model.FormTypeId" />
+
+                    @for (int i = 0; i < Model.ItemsForFollowUp.Count; i++)
+                    {
+                        var itemDto = Model.ItemsForFollowUp[i];
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Question: @itemDto.FormItemQuestion</h5>
+                                @if (!string.IsNullOrEmpty(itemDto.CorrectiveActionNotes))
+                                {
+                                    <p class="mb-0 mt-2">
+                                        <strong>Corrective Action:</strong> @itemDto.CorrectiveActionNotes
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p class="mb-0 mt-2 text-warning">
+                                        <strong>No Corrective Action Notes were provided for this item in the previous audit.</strong>
+                                    </p>
+                                }
+                                <small class="text-white-50">Previous Score: @itemDto.ExistingScoredValue / @itemDto.MaxScore</small>
+                                @if (itemDto.HasLooping && itemDto.LoopIndex.HasValue)
+                                {
+                                    <small class="text-white-50"> (Instance @(itemDto.LoopIndex.Value + 1))</small>
+                                }
+                            </div>
+                            <div class="card-body">
+                                @* Hidden fields to bind to FollowUpAuditSubmitItemDto *
+                                <input type="hidden" name="Items[@i].OriginalAuditResponseId" value="@itemDto.AuditResponseId" />
+                                <input type="hidden" name="Items[@i].FormItemId" value="@itemDto.FormItemId" />
+                                @if (itemDto.HasLooping && itemDto.LoopIndex.HasValue)
+                                {
+                                    <input type="hidden" name="Items[@i].LoopIndex" value="@itemDto.LoopIndex.Value" />
+                                }
+
+                                @* Render the input using the _ItemRenderer partial view.
+                                   Pass the FormItem data and LoopIndex if applicable.
+                                   Also pass the ExistingResponseValue to pre-fill. *@
+                                @{
+                                    var viewData = new ViewDataDictionary(ViewData);
+                                    if (itemDto.HasLooping && itemDto.LoopIndex.HasValue)
+                                    {
+                                        viewData["LoopIndex"] = itemDto.LoopIndex.Value;
+                                    }
+                                    viewData["ExistingResponseValue"] = itemDto.ExistingResponseValue;
+                                    viewData["InputPrefix"] = $"Items[{i}]."; // Add a prefix for model binding
+
+                                    await Html.PartialAsync("_FollowUpItemRenderer", itemDto.FormItem, viewData);
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="text-primary mb-3">Follow-Up Scoring Summary</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-success" id="currentScore">0</div>
+                                        <small class="text-muted">Current Follow-Up Score</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-primary" id="maxScore">@Model.ItemsForFollowUp.Sum(i => i.MaxScore ?? 0)</div>
+                                        <small class="text-muted">Max Possible for Follow-Up Items</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-warning" id="percentage">0%</div>
+                                        <small class="text-muted">Percentage</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Submit Follow-Up Audit
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <script>
+        function calculateFollowUpScore() {
+            let currentScore = 0;
+            // Ensure this sums up only the max scores of items displayed on the page
+            const maxScoreElement = document.getElementById('maxScore');
+            const maxScore = parseInt(maxScoreElement ? maxScoreElement.textContent : '0');
+
+
+            document.querySelectorAll('#followUpAuditForm input[name$=".ResponseValue"], #followUpAuditForm select[name$=".ResponseValue"], #followUpAuditForm textarea[name$=".ResponseValue"]').forEach(input => {
+                const maxScoreAttr = input.getAttribute('data-max-score');
+                if (maxScoreAttr) {
+                    const itemMaxScore = parseInt(maxScoreAttr);
+
+                    if (input.type === 'number') {
+                        currentScore += Math.min(parseInt(input.value) || 0, itemMaxScore);
+                    } else if (input.type === 'checkbox') {
+                        if (input.checked) {
+                            currentScore += itemMaxScore;
+                        }
+                    } else if (input.type === 'radio') {
+                        if (input.checked) {
+                            // Ensure only the selected radio button for a group adds score
+                            currentScore += itemMaxScore;
+                        }
+                    } else if (input.tagName === 'SELECT' && input.value) {
+                        const selectedOption = input.options[input.selectedIndex];
+                        if (selectedOption) {
+                            const optionScoreAttr = selectedOption.getAttribute('data-score');
+                            if (optionScoreAttr) {
+                                currentScore += parseInt(optionScoreAttr);
+                            } else {
+                                currentScore += itemMaxScore; // Fallback if no specific score on option
+                            }
+                        }
+                    } else if (input.tagName === 'TEXTAREA' || (input.type === 'text' && input.value)) {
+                        if (input.value.trim() !== '') {
+                            currentScore += itemMaxScore;
+                        }
+                    }
+                    // Add logic for ItemType.File and ItemType.Signature if scoring
+                }
+            });
+
+            document.getElementById('currentScore').textContent = currentScore;
+            document.getElementById('percentage').textContent =
+                maxScore > 0 ? Math.round((currentScore / maxScore) * 100) + '%' : '0%';
+        }
+
+        document.addEventListener('change', calculateFollowUpScore);
+        document.addEventListener('input', calculateFollowUpScore);
+        document.addEventListener('DOMContentLoaded', calculateFollowUpScore);
+    </script>
+}

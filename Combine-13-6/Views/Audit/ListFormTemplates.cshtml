@@ -1,0 +1,38 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.JenisForm>
+
+@{
+    ViewData["Title"] = "Available Audit Form Templates";
+}
+
+<h2>Available Audit Form Templates</h2>
+
+<p>Select a form template to start a new audit:</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="alert">
+        No audit form templates are currently available for your organization.
+    </div>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var formTemplate in Model)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                @formTemplate.Name
+                <a asp-controller="Audit" asp-action="DisplayForm" asp-route-id="@formTemplate.FormTypeId" class="btn btn-primary btn-sm">Start Audit</a>
+            </li>
+        }
+    </ul>
+}
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Back to Audit Instances</a>
+</div>
+
+@section PageScripts {
+    <script>
+        // Any specific scripts for this page if needed
+    </script>
+}

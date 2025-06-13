@@ -1,0 +1,252 @@
+@{
+	TempData.Keep();
+	string? currentPage = ViewContext.HttpContext.Request.Path;
+	// No need for a userRole variable if using User.IsInRole() directly
+}
+
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+
+	<div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
+		<a asp-controller="Dashboards" asp-action="Index" class="app-brand-link">
+			<span class="app-brand-logo demo me-1"> @await Html.PartialAsync("../_Partials/_Macros")</span>
+			<span class="app-brand-text demo menu-text fw-semibold ms-2">@TempData.Peek("appName")</span>
+		</a>
+
+		<a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+			<i class="menu-toggle-icon d-xl-block align-middle"></i>
+		</a>
+	</div>
+
+	<div class="menu-inner-shadow"></div>
+
+	<ul class="menu-inner py-1">
+
+		@if (User.IsInRole("Admin"))
+		{
+			<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active open" : "")'>
+				<a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-home-smile-line"></i>
+					<div>Dashboards</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
+				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
+					<div>Filing and Document Repository</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/FormBuilder") ? " active" : "")'>
+				<a asp-controller="FormBuilder" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
+					<div>Dynamic Form Builder</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/LayoutExamples") ? " active open" : "")'>
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					<i class="menu-icon tf-icons ri-layout-2-line"></i>
+					<div>Layouts</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/LayoutExamples/Container" ? " active" : "")'>
+						<a asp-controller="LayoutExamples" asp-action="Container" class="menu-link">
+							<div>Container</div>
+						</a>
+					</li>
+					<li class='menu-item@(currentPage == "/LayoutExamples/Blank" ? " active" : "")'>
+						<a asp-controller="LayoutExamples" asp-action="Blank" class="menu-link">
+							<div>Blank</div>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/FrontPages") ? " active open" : "")'>
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					<i class='menu-icon tf-icons ri-file-copy-line'></i>
+					<div>Front Pages</div><div class="badge bg-label-primary fs-tiny rounded-pill ms-auto">Pro</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/FrontPages/LandingPage" ? " active" : "")'>
+						<a href="https://demos.themeselection.com/materio-aspnet-core-mvc-admin-template/html/front-pages/landing-page.html" class="menu-link" target="_blank">
+							<div>Landing</div>
+						</a>
+					</li>
+					<li class='menu-item@(currentPage == "/FrontPages/PricingPage" ? " active" : "")'>
+						<a href="https://demos.themeselection.com/materio-aspnet-core-mvc-admin-template/html/front-pages/pricing-page.html" class="menu-link" target="_blank">
+							<div>Pricing</div>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/Pages") ? " active open" : "")'>
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					<i class="menu-icon tf-icons ri-layout-left-line"></i>
+					<div>Account Settings</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/Pages/AccountSettings" ? " active" : "")'>
+						<a asp-controller="Pages" asp-action="AccountSettings" class="menu-link">
+							<div>Account</div>
+						</a>
+					</li>
+					<li class='menu-item@(currentPage == "/Pages/AccountSettingsNotifications" ? " active" : "")'>
+						<a asp-controller="Pages" asp-action="AccountSettingsNotifications" class="menu-link">
+							<div>Notifications</div>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class="menu-item">
+				<a href='@TempData.Peek("support")' target="_blank" class="menu-link">
+					<i class="menu-icon tf-icons ri-lifebuoy-line"></i>
+					<div>Support</div>
+				</a>
+			</li>
+		}
+		else if (User.IsInRole("Manager"))
+		{
+			<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active open" : "")'>
+				<a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-home-smile-line"></i>
+					<div>Dashboards</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
+				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
+					<div>Filing and Document Repository</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/LayoutExamples") ? " active open" : "")'>
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					<i class="menu-icon tf-icons ri-layout-2-line"></i>
+					<div>Layouts</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/LayoutExamples/Container" ? " active" : "")'>
+						<a asp-controller="LayoutExamples" asp-action="Container" class="menu-link">
+							<div>Container</div>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/Pages") ? " active open" : "")'>
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					<i class="menu-icon tf-icons ri-layout-left-line"></i>
+					<div>Account Settings</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/Pages/AccountSettings" ? " active" : "")'>
+						<a asp-controller="Pages" asp-action="AccountSettings" class="menu-link">
+							<div>Account</div>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class='menu-item@(currentPage == "/Tables/Basic" ? " active" : "")'>
+				<a asp-controller="Tables" asp-action="Basic" class="menu-link">
+					<i class="menu-icon tf-icons ri-table-alt-line"></i>
+					<div>Tables</div>
+				</a>
+			</li>
+			<li class="menu-item">
+				<a href='@TempData.Peek("support")' target="_blank" class="menu-link">
+					<i class="menu-icon tf-icons ri-lifebuoy-line"></i>
+					<div>Support</div>
+				</a>
+			</li>
+		}
+		else if (User.IsInRole("User"))
+		{
+			<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active open" : "")'>
+				<a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-home-smile-line"></i>
+					<div>Dashboards</div>
+				</a>
+			</li>
+            <li class='menu-item@(currentPage.StartsWith("/Audit") ? " active" : "")'>
+                <a asp-controller="Audit" asp-action="Index" class="menu-link">
+                    <i class="menu-icon tf-icons ri-format-clear"></i>
+                    <div>Audit</div>
+                </a>
+            </li>
+			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
+				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-folder-open-line"></i> @* Example icon, you can choose another one *@
+					<div>Filing and Document Repository</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/Ui") ? " active open" : "")'>
+				<a href="javascript:void(0)" class="menu-link menu-toggle">
+					<i class="menu-icon tf-icons ri-toggle-line"></i>
+					<div>UI Elements</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/Ui/Buttons" ? " active" : "")'>
+						<a asp-controller="Ui" asp-action="Buttons" class="menu-link">
+							<div>Buttons</div>
+						</a>
+					</li>
+					<li class='menu-item@(currentPage == "/Ui/Modals" ? " active" : "")'>
+						<a asp-controller="Ui" asp-action="Modals" class="menu-link">
+							<div>Modals</div>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class='menu-item@(currentPage == "/Icons/RiIcons" ? " active" : "")'>
+				<a asp-controller="Icons" asp-action="RiIcons" class="menu-link">
+					<i class="menu-icon tf-icons ri-remixicon-line"></i>
+					<div>Icons</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/Pages") ? " active open" : "")'>
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					<i class="menu-icon tf-icons ri-layout-left-line"></i>
+					<div>Account Settings</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/Pages/AccountSettings" ? " active" : "")'>
+						<a asp-controller="Pages" asp-action="AccountSettings" class="menu-link">
+							<div>Account</div>
+						</a>
+					</li>
+				</ul>
+			</li>
+			<li class="menu-item">
+				<a href='@TempData.Peek("support")' target="_blank" class="menu-link">
+					<i class="menu-icon tf-icons ri-lifebuoy-line"></i>
+					<div>Support</div>
+				</a>
+			</li>
+		}
+		else if (User.IsInRole("SuperAdmin"))
+		{
+			@* User and Team Management (SuperAdmin specific) *@
+			<li class='menu-item@(currentPage.StartsWith("/Users") ? " active open" : "")'>
+				<a asp-controller="Users" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-user-line"></i>
+					<div>User List</div>
+				</a>
+			</li>
+			<li class="menu-item@(currentPage.StartsWith("/Roles") || currentPage.StartsWith("/Permissions") ? " active open" : "")">
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					<i class="menu-icon tf-icons ri-lock-2-line"></i>
+					<div data-i18n="Roles & Permissions">Roles & Permissions</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/Roles/Index" ? " active" : "")'>
+						<a asp-controller="Roles" asp-action="Index" class="menu-link">
+							<div data-i18n="Roles">Roles</div>
+						</a>
+					</li>
+					<li class='menu-item@(currentPage == "/Permissions/Index" ? " active" : "")'>
+						<a asp-controller="Permissions" asp-action="Index" class="menu-link">
+							<div data-i18n="Permissions">Permissions</div>
+						</a>
+					</li>
+				</ul>
+			</li>
+		}
+
+	</ul>
+</aside>

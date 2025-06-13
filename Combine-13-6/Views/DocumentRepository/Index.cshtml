@@ -1,0 +1,487 @@
+@using AspnetCoreMvcFull.Models.ViewModels
+@using AspnetCoreMvcFull.Models
+@model IEnumerable<AspnetCoreMvcFull.Models.ComplianceFolder>
+@{
+    ViewData["Title"] = "Document Repository";
+    var stats = ViewBag.Stats;
+    var complianceCategories = ViewBag.ComplianceCategories as List<AspnetCoreMvcFull.Models.ComplianceCategory>;
+    var currentTenantId = ViewBag.CurrentTenantId as string;
+
+    // Determine if the current user is an Admin
+    bool isAdmin = User.IsInRole("Admin");
+}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h3 class="display-6">Filling and Document Repository</h3>
+            <p class="lead text-muted">Manage audit documents and compliance folders</p>
+            @if (!string.IsNullOrEmpty(currentTenantId))
+            {
+                <small class="text-info">Current Tenant: <strong>@currentTenantId</strong></small>
+            }
+            else
+            {
+                <small class="text-danger">Current Tenant: (Not Identified)</small>
+            }
+        </div>
+        <div class="col-md-4 text-end">
+            @if (isAdmin)
+            {
+                <a href="@Url.Action("CreateFolder")" class="btn btn-primary me-2">
+                    <i class="ri-folder-add-line"></i> Create Folder @* Changed from fas fa-folder-plus *@
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (isAdmin)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm border-primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="text-primary">@stats.TotalFolders</h4>
+                                <p class="mb-0 text-muted">Total Folders</p>
+                            </div>
+                            <div class="align-self-center text-primary">
+                                <i class="ri-folder-line ri-3x"></i> @* Changed from fas fa-folder *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm border-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="text-success">@stats.TotalDocuments</h4>
+                                <p class="mb-0 text-muted">Documents</p>
+                            </div>
+                            <div class="align-self-center text-success">
+                                <i class="ri-file-text-line ri-3x"></i> @* Changed from fas fa-file-alt *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm border-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="text-warning">@stats.PendingSubmissions</h4>
+                                <p class="mb-0 text-muted">Pending</p>
+                            </div>
+                            <div class="align-self-center text-warning">
+                                <i class="ri-time-line ri-3x"></i> @* Changed from fas fa-clock *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm border-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="text-info">@stats.ComplianceRate%</h4>
+                                <p class="mb-0 text-muted">Compliance Rate</p>
+                            </div>
+                            <div class="align-self-center text-info">
+                                <i class="ri-bar-chart-line ri-3x"></i> @* Changed from fas fa-chart-bar *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="@(isAdmin ? "col-md-5" : "col-md-8")">
+                    <form method="get" id="filterForm">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ri-search-line"></i></span> @* Changed from fas fa-search *@
+                            <input type="text" class="form-control" name="searchQuery" value="@ViewBag.SearchQuery" placeholder="Search folders and documents...">
+                        </div>
+                    </form>
+                </div>
+                <div class="@(isAdmin ? "col-md-3" : "col-md-4")">
+                    <form method="get" id="categoryFilterForm">
+                        <select name="filter" class="form-select" onchange="document.getElementById('categoryFilterForm').submit();">
+                            <option value="all" selected="@(ViewBag.Filter == "all")">All Categories</option>
+                            @if (complianceCategories != null)
+                            {
+                                foreach (var category in complianceCategories)
+                                {
+                                    <option value="@category.Id" selected="@(ViewBag.Filter == category.Id.ToString())">
+                                        @category.Name
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </form>
+                </div>
+
+                @* Bulk Action Form - Visible only to Admin *@
+                @if (isAdmin)
+                {
+                    <div class="col-md-4">
+                        <form asp-action="BulkUpdateStatus" method="post" id="bulkActionForm" class="row g-3 align-items-center justify-content-end">
+                            @Html.AntiForgeryToken()
+                            <div class="col-auto">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAllFolders">
+                                    <label class="form-check-label" for="selectAllFolders">
+                                        Select All
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <select name="newStatus" id="newStatus" class="form-select form-select-sm">
+                                    <option value="">Bulk Actions...</option>
+                                    @foreach (var status in Enum.GetValues(typeof(FolderStatus)))
+                                    {
+                                        <option value="@status.ToString()">Change to @status.ToString()</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary btn-sm" id="applyBulkAction" disabled>Apply</button>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Tab Navigation for Admin View *@
+    @if (isAdmin)
+    {
+        <div class="nav-align-top mb-4">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewBag.CurrentTab == "all" ? "active" : "")"
+                       href="@Url.Action("Index", new { statusFilter = "all", searchQuery = ViewBag.SearchQuery, filter = ViewBag.Filter })"
+                       role="tab"
+                       aria-selected="@(ViewBag.CurrentTab == "all" ? "true" : "false")">
+                        All Folders
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewBag.CurrentTab == "active" ? "active" : "")"
+                       href="@Url.Action("Index", new { statusFilter = "Active", searchQuery = ViewBag.SearchQuery, filter = ViewBag.Filter })"
+                       role="tab"
+                       aria-selected="@(ViewBag.CurrentTab == "active" ? "true" : "false")">
+                        Active Folders
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewBag.CurrentTab == "archived" ? "active" : "")"
+                       href="@Url.Action("Index", new { statusFilter = "Archived", searchQuery = ViewBag.SearchQuery, filter = ViewBag.Filter })"
+                       role="tab">
+                        Archived Folders
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+    }
+
+    <div class="row">
+        @foreach (var folder in Model)
+        {
+            // Conditional rendering for non-Admin users
+            @if (!isAdmin && folder.Status != FolderStatus.Active)
+            {
+                continue; // Skip rendering if not Admin and folder is not Active
+            }
+
+            var progressPercentage = folder.RequiredDocuments.Any()
+            ? (folder.RequiredDocuments.Count(rd => rd.IsSubmitted) * 100) / folder.RequiredDocuments.Count()
+            : 100;
+
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="card-title mb-0">@folder.Name</h6>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-secondary me-2">@folder.ComplianceCategory?.Name</span>
+                            @if (isAdmin)
+                            {
+                                <input type="checkbox" name="selectedFolders" value="@folder.Id" class="form-check-input folder-checkbox" />
+                            }
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text text-muted">@(folder.Description ?? "No description")</p>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>Progress</small>
+                                <small>@progressPercentage%</small>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar" role="progressbar" style="width: @progressPercentage%"></div>
+                            </div>
+                        </div>
+
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <strong>@folder.Documents.Count</strong><br>
+                                <small class="text-muted">Documents</small>
+                            </div>
+
+                            <div class="col-4">
+                                <strong>@folder.RequiredDocuments.Count(rd => !rd.IsSubmitted)</strong><br>
+                                <small class="text-muted">Pending</small>
+                            </div>
+                            <div class="col-4">
+                                <strong>@folder.Status</strong><br>
+                                <small class="text-muted">Status</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex align-items-center">
+                            <div class="btn-group flex-grow-1 me-1">
+                                @if (isAdmin)
+                                {
+                                    <a href="@Url.Action("FolderDetails", new { id = folder.Id })" class="btn btn-outline-primary btn-sm">
+                                        <i class="ri-eye-line"></i> View @* Changed from fas fa-eye *@
+                                    </a>
+                                }
+                                @if (User.IsInRole("Manager") || User.IsInRole("User"))
+                                {
+                                    <a href="@Url.Action("FolderDetails", new { id = folder.Id })" class="btn btn-outline-primary btn-sm">
+                                        <i class="ri-upload-cloud-line"></i> Upload @* Changed from fas fa-eye to a more relevant icon for upload *@
+                                    </a>
+                                }
+                                @if (isAdmin)
+                                {
+                                    <a href="@Url.Action("EditFolder", new { Id = folder.Id })" class="btn btn-outline-success btn-sm">
+                                        <i class="ri-edit-line"></i> Edit @* Changed from fas fa-edit *@
+                                    </a>
+                                }
+
+                            </div>
+
+                            @if (isAdmin)
+                            {
+                                @if (folder.Status == FolderStatus.Active || folder.Status == FolderStatus.Completed)
+                                {
+                                    @* Archive Button *@
+                                    <button type="button" class="btn btn-dark btn-sm w-auto shadow-sm ms-1 archive-folder-btn"
+                                            data-bs-toggle="modal" data-bs-target="#confirmFolderActionModal"
+                                            data-folder-id="@folder.Id"
+                                            data-folder-name="@folder.Name"
+                                            data-action-type="archive"
+                                            title="Archive Folder">
+                                        <i class="ri-archive-line me-1"></i> <small>Archive</small> @* Changed from fas fa-archive *@
+                                    </button>
+                                }
+                                else if (folder.Status == FolderStatus.Archived)
+                                {
+                                    @* Activate Button *@
+                                    <button type="button" class="btn btn-info btn-sm w-auto shadow-sm ms-1 activate-folder-btn"
+                                            data-bs-toggle="modal" data-bs-target="#confirmFolderActionModal"
+                                            data-folder-id="@folder.Id"
+                                            data-folder-name="@folder.Name"
+                                            data-action-type="activate"
+                                            title="Activate Folder">
+                                        <i class="ri-refresh-line me-1"></i> <small>Activate</small> @* Changed from fas fa-redo *@
+                                    </button>
+                                }
+                            }
+                        </div>
+                        <small class="text-muted">Created: @folder.CreatedDate.ToString("MMM dd,yyy")</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* This "No folders found" message will now apply if no folders match the filter for non-admins as well *@
+    @if (!Model.Any(folder => isAdmin || folder.Status == FolderStatus.Active))
+    {
+        <div class="text-center py-5">
+            <i class="ri-folder-open-line ri-3x text-muted mb-3"></i> @* Changed from fas fa-folder-open *@
+            <h4>No folders found</h4>
+            <p class="text-muted">Get started by creating your first compliance folder.</p>
+            @if (isAdmin)
+            {
+                <a href="@Url.Action("CreateFolder")" class="btn btn-primary">
+                    <i class="ri-folder-add-line"></i> Create First Folder @* Changed from fas fa-folder-plus *@
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@if (isAdmin)
+{
+    <div class="modal fade" id="confirmFolderActionModal" tabindex="-1" aria-labelledby="confirmFolderActionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmFolderActionModalLabel">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <span id="modalActionMessage"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="folderActionForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" id="folderIdToAct" />
+                        <button type="submit" class="btn" id="modalConfirmButton"></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section PageScripts {
+    <script>
+        // Auto-submit search form on enter
+        $('input[name="searchQuery"]').on('keypress', function(e) {
+            if (e.which === 13) {
+                $(this).closest('form').submit();
+            }
+        });
+
+        // --- JAVASCRIPT FOR BULK ACTIONS (Admin only) ---
+        @if (isAdmin)
+        {
+                <text>
+                            $(document).ready(function() {
+                                const selectAllFolders = $('#selectAllFolders');
+                                const folderCheckboxes = $('.folder-checkbox');
+                                const applyBulkActionBtn = $('#applyBulkAction');
+                                const bulkActionForm = $('#bulkActionForm');
+                                const newStatusSelect = $('#newStatus');
+
+                                function toggleApplyButton() {
+                                    const anyChecked = folderCheckboxes.is(':checked');
+                                    const statusSelected = newStatusSelect.val() !== '';
+                                    applyBulkActionBtn.prop('disabled', !(anyChecked && statusSelected));
+                                }
+
+                                selectAllFolders.on('change', function() {
+                                    folderCheckboxes.prop('checked', $(this).prop('checked'));
+                                    toggleApplyButton();
+                                });
+
+                                folderCheckboxes.on('change', function() {
+                                    if (!$(this).prop('checked')) {
+                                        selectAllFolders.prop('checked', false);
+                                    } else if (folderCheckboxes.length === folderCheckboxes.filter(':checked').length) {
+                                        selectAllFolders.prop('checked', true);
+                                    }
+                                    toggleApplyButton();
+                                });
+
+                                newStatusSelect.on('change', toggleApplyButton);
+
+                                // Initial check on page load
+                                toggleApplyButton();
+
+                                bulkActionForm.on('submit', function(e) {
+                                    const selectedIds = folderCheckboxes.filter(':checked').map(function() {
+                                        return $(this).val();
+                                    }).get();
+
+                                    if (selectedIds.length === 0) {
+                                        alert('Please select at least one folder.');
+                                        e.preventDefault();
+                                        return false;
+                                    }
+
+                                    if (newStatusSelect.val() === '') {
+                                        alert('Please select a status to apply.');
+                                        e.preventDefault();
+                                        return false;
+                                    }
+
+                                    if (!confirm('Are you sure you want to change the status of ' + selectedIds.length + ' selected folder(s) to ' + newStatusSelect.val() + '?')) {
+                                        e.preventDefault();
+                                        return false;
+                                    }
+
+                                    // Remove any previously added hidden inputs to prevent duplicates on resubmission
+                                    bulkActionForm.find('input[name="folderIds"]').remove();
+
+                                    // Add hidden input fields for each selected ID
+                                    selectedIds.forEach(function(id) {
+                                        $('<input>').attr({
+                                            type: 'hidden',
+                                            name: 'folderIds',
+                                            value: id
+                                        }).appendTo(bulkActionForm);
+                                    });
+                                });
+                            });
+                </text>
+        }
+
+
+        // --- JAVASCRIPT FOR SINGLE FOLDER ARCHIVE/ACTIVATE ACTIONS (Admin only) ---
+        @if (isAdmin)
+        {
+                <text>
+                            $(document).ready(function() {
+                                const confirmFolderActionModal = document.getElementById('confirmFolderActionModal');
+                                confirmFolderActionModal.addEventListener('show.bs.modal', function (event) {
+                                    const button = event.relatedTarget; // Button that triggered the modal
+                                    const folderId = button.getAttribute('data-folder-id');
+                                    const folderName = button.getAttribute('data-folder-name');
+                                    const actionType = button.getAttribute('data-action-type'); // 'archive' or 'activate'
+
+                                    const modalActionMessage = confirmFolderActionModal.querySelector('#modalActionMessage');
+                                    const folderIdToActInput = confirmFolderActionModal.querySelector('#folderIdToAct');
+                                    const modalConfirmButton = confirmFolderActionModal.querySelector('#modalConfirmButton');
+                                    const folderActionForm = confirmFolderActionModal.querySelector('#folderActionForm');
+                                    const confirmFolderActionModalLabel = confirmFolderActionModal.querySelector('#confirmFolderActionModalLabel');
+
+
+                                    folderIdToActInput.value = folderId;
+
+                                    if (actionType === 'archive') {
+                                        confirmFolderActionModalLabel.textContent = 'Confirm Archive Folder';
+                                        modalActionMessage.innerHTML = `Are you sure you want to <strong>archive</strong> the folder "<strong class="text-danger">${folderName}</strong>"? This will move it to an archived status and may restrict certain operations.`;
+                                        modalConfirmButton.textContent = 'Archive Folder';
+                                        modalConfirmButton.classList.remove('btn-info');
+                                        modalConfirmButton.classList.add('btn-dark');
+                                        folderActionForm.setAttribute('action', '@Url.Action("ArchiveFolder")');
+                                    } else if (actionType === 'activate') {
+                                        confirmFolderActionModalLabel.textContent = 'Confirm Activate Folder';
+                                        modalActionMessage.innerHTML = `Are you sure you want to <strong>activate</strong> the folder "<strong class="text-info">${folderName}</strong>"? This will change its status back to active.`;
+                                        modalConfirmButton.textContent = 'Activate Folder';
+                                        modalConfirmButton.classList.remove('btn-dark');
+                                        modalConfirmButton.classList.add('btn-info');
+                                        folderActionForm.setAttribute('action', '@Url.Action("ActivateFolder")');
+                                    }
+                                });
+                            });
+                </text>
+        }
+
+
+        // Initialize tooltips (important for the new icon-only button)
+        $(document).ready(function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        });
+    </script>
+}

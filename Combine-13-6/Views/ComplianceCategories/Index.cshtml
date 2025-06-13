@@ -1,0 +1,91 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.ViewModels.ComplianceCategoryViewModel>
+
+@{
+	ViewData["Title"] = "Manage Compliance Categories";
+}
+
+<style>
+	/* Custom style for description cell to allow text wrapping */
+	.description-cell {
+		white-space: normal; /* Allows text to wrap to the next line */
+		word-wrap: break-word; /* Breaks long words if they don't fit */
+		/* You can optionally add a max-width if you want to limit the column's overall width */
+		/* max-width: 300px; */
+	}
+</style>
+
+<div class="container-fluid">
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<h1 class="h3">Compliance Categories Dashboard</h1> @* Moved title outside the card *@
+		<a asp-action="Create" class="btn btn-primary">
+			<i class="ri-add-line me-2"></i> Create New Category @* Moved button outside the card and updated icon *@
+		</a>
+	</div>
+
+	<div class="card shadow-sm rounded-3">
+		@* The card now only contains the table and its body styling *@
+		<div class="card-body p-4">
+			@* Moved p-4 to card-body for general padding *@
+			<div class="table-responsive">
+				<table id="complianceCategoriesTable" class="table table-striped table-hover w-100">
+					@* Added ID, w-100 for Datatables *@
+					<thead>
+						<tr>
+							<th>@Html.DisplayNameFor(model => model.Name)</th>
+							<th>@Html.DisplayNameFor(model => model.Code)</th>
+							<th>@Html.DisplayNameFor(model => model.Description)</th>
+							<th class="text-center">Actions</th>
+						</tr>
+					</thead>
+					<tbody class="table-border-bottom-0">
+						@foreach (var item in Model)
+						{
+							<tr>
+								<td>@Html.DisplayFor(modelItem => item.Name)</td>
+								<td>@Html.DisplayFor(modelItem => item.Code)</td>
+								<td class="description-cell">@Html.DisplayFor(modelItem => item.Description)</td> @* Applied custom class here *@
+								<td class="text-center">
+									<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-outline-secondary me-1" title="Edit">
+										<i class="ri-edit-line"></i> @* Changed to Remix Icon for Edit *@
+									</a>
+									<a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-outline-danger" title="Delete">
+										<i class="ri-delete-bin-line"></i> @* Changed to Remix Icon for Delete *@
+									</a>
+								</td>
+							</tr>
+						}
+						@* Removed the @if (!Model.Any()) block here as DataTables handles no data state gracefully *@
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+@* Remix Icons CSS (Ensure this link is included if not globally) *@
+	<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
+@* Datatables CSS *@
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+@* jQuery (if not already loaded) - Datatables requires jQuery *@
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+@* Datatables JS *@
+	<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+	<script>
+		$(document).ready(function() {
+			// Initialize DataTables
+			$('#complianceCategoriesTable').DataTable({
+				"paging": true,        // Enable pagination
+				"searching": true,     // Enable search box
+				"ordering": true,      // Enable sorting on columns
+				"info": true,          // Display info about the table
+				"lengthChange": true,  // Allow changing number of entries per page
+				"pageLength": 10       // Default number of entries per page
+			});
+		});
+	</script>
+
+	<partial name="_ValidationScriptsPartial" />
+}

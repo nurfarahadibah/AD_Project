@@ -1,0 +1,162 @@
+@model AspnetCoreMvcFull.Models.AuditInstance
+
+@{
+    ViewData["Title"] = "Add Corrective Actions";
+    var itemsNeedingCorrection = ViewBag.ItemsNeedingCorrection as List<AspnetCoreMvcFull.Models.AuditResponse>;
+    var existingCorrectiveActions = ViewBag.ExistingCorrectiveActions as List<AspnetCoreMvcFull.Models.CorrectiveAction>;
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Audit Instances</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.AuditInstanceId">Audit Details</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add Corrective Actions</li>
+        </ol>
+    </nav>
+
+    <h2>Add Corrective Actions for "@ViewBag.FormName" (Audit ID: @Model.AuditInstanceId)</h2>
+    <p class="text-muted">Below are items that did not achieve a full score. Please add corrective action notes and a due date for each.</p>
+    <hr />
+
+    @if (itemsNeedingCorrection == null || !itemsNeedingCorrection.Any())
+    {
+        <div class="alert alert-success" role="alert">
+            All audit items achieved full marks! No corrective actions required for this audit.
+            <p><a asp-action="Details" asp-route-id="@Model.AuditInstanceId" class="btn btn-info btn-sm mt-2">Back to Audit Details</a></p>
+        </div>
+    }
+    else
+    {
+        <form id="correctiveActionsForm" asp-action="SaveCorrectiveActions" asp-controller="Audit" method="post">
+            <input type="hidden" name="auditInstanceId" value="@Model.AuditInstanceId" />
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Question</th>
+                            <th>Score</th>
+                            <th>Corrective Action Notes</th>
+                            <th>Due Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var responseCount = 0;
+                            foreach (var response in itemsNeedingCorrection)
+                            {
+                                responseCount++;
+                                var currentItemIndex = responseCount - 1;
+                                var existingCa = existingCorrectiveActions?.FirstOrDefault(ca => ca.AuditResponseId == response.AuditResponseId);
+                                string defaultNotes = existingCa?.CorrectiveActionNotes ?? "";
+                                DateTime defaultDueDate = existingCa?.DueDate ?? DateTime.Today.AddDays(14); // Default to 2 weeks from today
+                                if (defaultDueDate < DateTime.Today && existingCa?.Status != AspnetCoreMvcFull.Models.CorrectiveActionStatus.Completed)
+                                {
+                                    // If existing and overdue, ensure it's not in the past
+                                    defaultDueDate = DateTime.Today.AddDays(1); // Set to tomorrow if overdue
+                                }
+                                string dueDateString = defaultDueDate.ToString("yyyy-MM-dd");
+
+                                <tr>
+                                    <td>@responseCount</td>
+                                    <td>
+                                        @response.FormItemQuestion
+                                        @if (response.LoopIndex.HasValue)
+                                        {
+                                            <small class="text-muted">(Instance @(response.LoopIndex.Value + 1))</small>
+                                        }
+                                        <input type="hidden" name="items[@currentItemIndex].AuditResponseId" value="@response.AuditResponseId" />
+                                    </td>
+                                    <td>@response.ScoredValue / @response.MaxPossibleScore</td>
+                                    <td>
+                                        <textarea class="form-control" name="items[@currentItemIndex].CorrectiveActionNotes" rows="2" placeholder="Enter corrective action details...">@defaultNotes</textarea>
+                                    </td>
+                                    <td>
+                                        <input type="date" class="form-control" name="items[@currentItemIndex].DueDate" value="@dueDateString" required />
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 text-center">
+                <button type="submit" class="btn btn-primary me-2">Save Corrective Actions</button>
+                <a asp-action="Details" asp-route-id="@Model.AuditInstanceId" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    }
+</div>
+
+@section PageScripts {
+    <script>
+        document.getElementById('correctiveActionsForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const form = event.target;
+            const auditInstanceId = form.elements.auditInstanceId.value;
+            const items = [];
+
+            // Collect data from each row
+            form.querySelectorAll('tbody tr').forEach((row, index) => {
+                const auditResponseId = row.querySelector(`[name="items[${index}].AuditResponseId"]`).value;
+                const notes = row.querySelector(`[name="items[${index}].CorrectiveActionNotes"]`).value;
+                const dueDate = row.querySelector(`[name="items[${index}].DueDate"]`).value;
+
+                // Only add items with notes, or if notes were previously saved
+                if (notes.trim() !== "") { // We only submit if there's a note
+                    items.push({
+                        AuditResponseId: parseInt(auditResponseId),
+                        CorrectiveActionNotes: notes.trim(),
+                        DueDate: dueDate
+                    });
+                }
+            });
+
+            if (items.length === 0) {
+                alert("No corrective action notes entered. Please fill in notes for items that need action.");
+                return;
+            }
+
+            // Prepare data for submission
+            const formData = new FormData();
+            formData.append('auditInstanceId', auditInstanceId);
+            formData.append('jsonData', JSON.stringify(items)); // Stringify the array of items
+
+            // Send via fetch API
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value // Anti-forgery token
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Check for specific error messages from the server
+                    if (response.status === 401) { // Unauthorized
+                        return response.text().then(text => Promise.reject(new Error(text || "Unauthorized action")));
+                    }
+                    if (response.status === 404) { // Not Found
+                        return response.text().then(text => Promise.reject(new Error(text || "Resource not found")));
+                    }
+                    return response.json().then(errorData => Promise.reject(errorData || new Error("Network response was not ok.")));
+                }
+                return response.text(); // Assuming RedirectToAction sends a 302 or similar, text might be more robust
+            })
+            .then(data => {
+                // Since controller redirects, this fetch will likely get the HTML of the redirected page.
+                // It's often better to check HTTP status or rely on a specific JSON response.
+                // For simplicity, we'll just redirect the browser to the details page after success.
+                window.location.href = '@Url.Action("Details", "Audit", new { id = Model.AuditInstanceId })';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving corrective actions: ' + (error.message || JSON.stringify(error)));
+                // You might want to display the error to the user
+            });
+        });
+    </script>
+}
