@@ -1,0 +1,48 @@
+@using AspnetCoreMvcFull.Models.ViewModels
+@model AspnetCoreMvcFull.Models.ViewModels.TenantCreateViewModel
+
+@{
+	ViewData["Title"] = "Create New Tenant";
+}
+
+<div class="content-wrapper">
+	<div class="container-xxl flex-grow-1 container-p-y">
+		<h4 class="py-3 mb-4"><span class="text-muted fw-light">Tenant Management /</span> Create New Tenant</h4>
+
+		<div class="card">
+			<div class="card-header">
+				<h5 class="mb-0">Tenant Details</h5>
+			</div>
+			<div class="card-body">
+				<form asp-action="CreateTenant" method="post">
+					@Html.AntiForgeryToken()
+
+					<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+					<div class="mb-3 form-floating form-floating-outline">
+						<input asp-for="Name" class="form-control" placeholder="Enter tenant name" />
+						<label asp-for="Name"></label>
+						<span asp-validation-for="Name" class="text-danger"></span>
+					</div>
+
+					<div class="mb-3 form-floating form-floating-outline">
+						<textarea asp-for="Description" class="form-control" placeholder="Enter tenant description" rows="3"></textarea>
+						<label asp-for="Description"></label>
+						<span asp-validation-for="Description" class="text-danger"></span>
+					</div>
+
+					<div class="d-flex justify-content-between">
+						<a asp-action="Index" class="btn btn-outline-secondary">Back to User List</a>
+						<button type="submit" class="btn btn-primary">Create Tenant</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}

@@ -1,0 +1,59 @@
+@model AspnetCoreMvcFull.Models.ViewModels.RequiredDocumentViewModel
+
+@{
+	var index = ViewData["index"];
+	var disableRemove = Model.HasUploads ? "disabled" : "";
+	var tooltipText = Model.HasUploads ? $"Cannot remove: {Model.UploadedDocumentCount} document(s) uploaded." : "Remove document requirement";
+	// Ensure you have the Remixicon CSS linked in your project, e.g., in _Layout.cshtml:
+	// <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+}
+
+<div class="row g-3 align-items-end mb-2 required-document-row" data-index="@index">
+	<input type="hidden" name="RequiredDocuments[@index].Id" value="@Model.Id" />
+	<div class="col-md-5">
+		<div class="form-floating form-floating-outline">
+			<input type="text" id="RequiredDocuments_@(index)__DocumentName" name="RequiredDocuments[@index].DocumentName" class="form-control" value="@Model.DocumentName" placeholder="Document Name" />
+			<label for="RequiredDocuments_@(index)__DocumentName">Document Name</label>
+		</div>
+		<span class="text-danger" data-valmsg-for="RequiredDocuments[@index].DocumentName" data-valmsg-replace="true"></span>
+	</div>
+	<div class="col-md-6">
+		<div class="form-floating form-floating-outline">
+			<input type="text" id="RequiredDocuments_@(index)__Description" name="RequiredDocuments[@index].Description" class="form-control" value="@Model.Description" placeholder="Description (Optional)" />
+			<label for="RequiredDocuments_@(index)__Description">Description (Optional)</label>
+		</div>
+		<span class="text-danger" data-valmsg-for="RequiredDocuments[@index].Description" data-valmsg-replace="true"></span>
+	</div>
+	<div class="col-md-1 text-center">
+		@* The button itself now only contains the icon, and classes determine its look *@
+		<button type="button" class="btn @(Model.HasUploads ? "btn-secondary" : "btn-danger") btn-icon waves-effect waves-light remove-document" @disableRemove data-bs-toggle="tooltip" data-bs-placement="top" title="@tooltipText">
+			@if (Model.HasUploads)
+			{
+				<i class="ri-forbid-line"></i> @* Icon for disabled/cannot remove *@
+			}
+			else
+			{
+				<i class="ri-delete-bin-line"></i> @* Trash icon for active removal *@
+			}
+		</button>
+		@if (Model.HasUploads)
+		{
+			<small class="d-block text-muted">(@Model.UploadedDocumentCount)</small>
+		}
+	</div>
+	<input type="hidden" name="RequiredDocuments[@index].IsRequired" value="true" />
+</div>
+
+<script>
+	// Initialize tooltips (requires Bootstrap JS bundle)
+	// IMPORTANT: This script should ideally be in the parent view's PageScripts section
+	// or in a central JS file that runs after content is loaded, NOT directly in this partial.
+	// Placing it directly in the partial means it will be added multiple times, which can cause issues.
+	// If you already have it in your main view or _Layout.cshtml, you can remove it from here.
+	document.addEventListener('DOMContentLoaded', function () {
+		var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+		var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+			return new bootstrap.Tooltip(tooltipTriggerEl)
+		})
+	});
+</script>

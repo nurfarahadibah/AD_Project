@@ -1,0 +1,67 @@
+/* Custom styles goes here */
+/* Custom styles goes here */
+
+// Override the background of the menu
+.bg-menu-theme {
+  background-color: #ffffff; // Set to white
+  // Add a subtle border for separation from content, if desired
+  border-right: 1px solid #e0e0e0;
+}
+
+// Adjust default text and icon colors for readability on white background
+.bg-menu-theme .menu-link {
+  color: #433c50; // Darker gray for general menu text
+}
+
+.bg-menu-theme .menu-icon {
+  color: #6f6b79; // Darker gray for icons, use a value that contrasts well
+}
+
+// Adjust hover state for menu items
+.bg-menu-theme .menu-item .menu-link:hover {
+  background-color: rgba(0, 0, 0, 0.04); // Very light gray on hover
+  color: #4CAF50; // Keep the text green on hover for visual feedback
+}
+
+// Ensure active item still looks good (your current green should work)
+// The active background gradient is already defined in theme-default.scss based on $primary-color
+// So, we just need to ensure text and icon are white on that green.
+.bg-menu-theme .menu-item.active > .menu-link:not(.menu-toggle) {
+  color: #ffffff; // White text on the green active background
+}
+
+.bg-menu-theme .menu-item.active .menu-icon {
+  color: #ffffff; // White icon on the green active background
+}
+
+// Adjust sub-menu backgrounds to white as well
+.bg-menu-theme .menu-sub {
+  background-color: #ffffff;
+}
+
+// Adjust the inner shadow gradient to match the new white background
+.bg-menu-theme .menu-inner-shadow {
+  background: linear-gradient(rgba(255, 255, 255, 0.9) 5%, rgba(255, 255, 255, 0.6) 45%, rgba(255, 255, 255, 0.2) 80%, transparent);
+}
+
+// Adjust menu header text color if it becomes unreadable
+.bg-menu-theme .menu-header {
+  color: #6f6b79; // Darker gray for section headers
+}
+
+// Adjust scrollbar thumb color for visibility on white
+.bg-menu-theme .ps__thumb-y,
+.bg-menu-theme .ps__rail-y.ps--clicking > .ps__thumb-y {
+  background: rgba(0, 0, 0, 0.2); // Make scrollbar visible but subtle
+}
+
+// Adjust app brand text color on the white background
+.bg-menu-theme .app-brand .app-brand-text {
+  color: #433c50; // Darker color for app name
+}
+
+// Adjust the line before/after menu headers if they become invisible
+.bg-menu-theme .menu-inner > .menu-header::before,
+.bg-menu-theme .menu-inner > .menu-header::after {
+  background-color: #e0e0e0; // A light gray line for contrast
+}

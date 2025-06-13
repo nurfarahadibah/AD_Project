@@ -1,0 +1,38 @@
+@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+@{
+	ViewData["Title"] = "User List";
+	var userRoles = ViewBag.UserRoles as Dictionary<string, string>;
+}
+
+@section PageScripts {
+	  <script src="~/js/pages-account-settings-account.js"></script>
+}
+
+<h2>User List</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.UserName</td>
+                <td>@(userRoles != null && userRoles.ContainsKey(user.Id) ? userRoles[user.Id] : "Unknown")</td>
+                <td>
+                    <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Are you sure?')">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

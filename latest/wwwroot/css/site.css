@@ -1,0 +1,53 @@
+/* Custom styles goes here */
+/* Custom styles goes here */
+.bg-menu-theme {
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+}
+
+.bg-menu-theme .menu-link {
+  color: #433c50;
+}
+
+.bg-menu-theme .menu-icon {
+  color: #6f6b79;
+}
+
+.bg-menu-theme .menu-item .menu-link:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: #4CAF50;
+}
+
+.bg-menu-theme .menu-item.active > .menu-link:not(.menu-toggle) {
+  color: #ffffff;
+}
+
+.bg-menu-theme .menu-item.active .menu-icon {
+  color: #ffffff;
+}
+
+.bg-menu-theme .menu-sub {
+  background-color: #ffffff;
+}
+
+.bg-menu-theme .menu-inner-shadow {
+  background: linear-gradient(rgba(255, 255, 255, 0.9) 5%, rgba(255, 255, 255, 0.6) 45%, rgba(255, 255, 255, 0.2) 80%, transparent);
+}
+
+.bg-menu-theme .menu-header {
+  color: #6f6b79;
+}
+
+.bg-menu-theme .ps__thumb-y,
+.bg-menu-theme .ps__rail-y.ps--clicking > .ps__thumb-y {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.bg-menu-theme .app-brand .app-brand-text {
+  color: #433c50;
+}
+
+.bg-menu-theme .menu-inner > .menu-header::before,
+.bg-menu-theme .menu-inner > .menu-header::after {
+  background-color: #e0e0e0;
+}
