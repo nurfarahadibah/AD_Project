@@ -1,0 +1,158 @@
+@model AspnetCoreMvcFull.Models.ViewModels.FormItemViewModel
+
+@{
+    // Get the FollowUpAuditItemDto from ViewData, which holds the dynamic audit response data
+    var followUpAuditItemDto = ViewData["FollowUpAuditItemDto"] as AspnetCoreMvcFull.Models.ViewModels.FollowUpAuditItemDto;
+
+    // Extract relevant data from the DTO
+    var loopIndex = ViewData["LoopIndex"] as int?; // This is specifically for looping context
+    var existingResponseValue = followUpAuditItemDto?.ExistingResponseValue; // Use the value from the DTO
+    var existingScoredValue = followUpAuditItemDto?.ExistingScoredValue; // Use the score from the DTO
+
+    // Get the HTML field name prefix for correct model binding in the parent form
+    // This prefix is passed by the parent view (FollowUpAudit.cshtml)
+    var htmlFieldNamePrefix = ViewData["HtmlFieldNamePrefix"] as string ?? "";
+
+    // The name attribute for the input, used for model binding to FollowUpAuditSubmittedItemDto.ResponseValue
+    // It must be prefixed to match the collection indexing in the parent form
+    var inputName = $"{htmlFieldNamePrefix}ResponseValue";
+
+    // Generate a unique ID for the input element to link with the label
+    // Ensure the ID is unique even across looped items and different forms
+    var inputId = $"{htmlFieldNamePrefix.Replace("[", "_").Replace("]", "_").Replace(".", "_")}_response_{Model.ItemId}_{(loopIndex.HasValue ? $"loop_{loopIndex.Value}" : "")}";
+
+    // Data attribute for client-side score calculation (MaxScore is on the FormItemViewModel)
+    var maxScoreAttr = Model.MaxScore.HasValue ? $"data-max-score=\"{Model.MaxScore}\"" : "";
+
+    // Use a static instance for JsonSerializerOptions to avoid re-creating it
+    // This should ideally be a static readonly field in a helper class or your controller
+    // For this partial, we'll declare it here. If you have it globally, use that.
+    var jsonSerializerOptions = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+    List<AspnetCoreMvcFull.Models.ItemOption> options = new List<AspnetCoreMvcFull.Models.ItemOption>();
+    if (!string.IsNullOrEmpty(Model.OptionsJson))
+    {
+        try
+        {
+            options = System.Text.Json.JsonSerializer.Deserialize<List<AspnetCoreMvcFull.Models.ItemOption>>(Model.OptionsJson, jsonSerializerOptions);
+        }
+        catch (Exception ex)
+        {
+            // Log this error properly in a real application
+            Console.WriteLine($"Error deserializing options for item {Model.ItemId}: {ex.Message}");
+            options = new List<AspnetCoreMvcFull.Models.ItemOption>();
+        }
+    }
+}
+
+<div class="mb-3">
+    <label for="@inputId" class="form-label">
+        @Model.Question
+        @if (Model.IsRequired)
+        {
+            <span class="text-danger">*</span>
+        }
+        @if (Model.MaxScore.HasValue)
+        {
+            <span class="text-primary small">(Max Score: @Model.MaxScore)</span>
+        }
+    </label>
+
+    @* Display previous audit score and response value for context *@
+    @if (followUpAuditItemDto != null)
+    {
+        <div class="alert alert-secondary small py-2 px-3 mt-2 mb-3">
+            <i class="fas fa-history me-2"></i>
+            <strong>Previous:</strong>
+            @if (existingResponseValue != null)
+            {
+                <span>Value: "@existingResponseValue"</span>
+            }
+            @if (existingScoredValue.HasValue)
+            {
+                <span class="ms-3">Score: @existingScoredValue / @Model.MaxScore</span>
+            }
+            else if (Model.MaxScore.HasValue && !existingScoredValue.HasValue)
+            {
+                <span class="ms-3">Score: N/A / @Model.MaxScore (Non-scoreable or not scored)</span>
+            }
+        </div>
+    }
+
+    @switch (Model.ItemType.ToString()) // Using ToString() here for switch, as ItemTypeName is string
+    {
+        case "Text":
+            <input type="text" id="@inputId" name="@inputName" class="form-control" value="@existingResponseValue" @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+            break;
+
+        case "Number":
+            <input type="number"
+                   id="@inputId"
+                   name="@inputName"
+                   class="form-control"
+                   value="@existingResponseValue"
+                   @(Model.IsRequired ? "required" : "")
+                   min="0"
+                   max="@(Model.MaxScore ?? int.MaxValue)"
+                   @maxScoreAttr />
+            break;
+
+        case "Textarea":
+            <textarea id="@inputId" name="@inputName" class="form-control" rows="3" @(Model.IsRequired ? "required" : "") @maxScoreAttr>@existingResponseValue</textarea>
+            break;
+
+        case "Checkbox":
+            <div class="form-check">
+                <input type="checkbox" id="@inputId" name="@inputName" value="true" class="form-check-input" @(existingResponseValue?.Equals("true", StringComparison.OrdinalIgnoreCase) == true || existingResponseValue?.Equals("on", StringComparison.OrdinalIgnoreCase) == true ? "checked" : null) @maxScoreAttr />
+                <label class="form-check-label" for="@inputId">
+                    Checked
+                </label>
+            </div>
+            <input type="hidden" name="@inputName" value="false" />
+         @* Hidden field to ensure 'false' is sent if unchecked *@
+            break;
+
+        case "Radio":
+            @foreach (var option in options)
+            {
+                <div class="form-check">
+                    <input type="radio" name="@inputName" id="@(inputId)_@option.Value?.Replace(" ", "_")" value="@option.Value" class="form-check-input" @(option.Value?.Equals(existingResponseValue, StringComparison.OrdinalIgnoreCase) == true ? "checked" : null) data-score="@(option.Score ?? 0)" @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+                    <label class="form-check-label" for="@(inputId)_@option.Value?.Replace(" ", "_")">@option.Text</label>
+                </div>
+            }
+            break;
+
+        case "Dropdown":
+            <select id="@inputId" name="@inputName" class="form-select" @(Model.IsRequired ? "required" : "") @maxScoreAttr>
+                <option value="">Select an option...</option>
+                @foreach (var option in options)
+                {
+                    <option value="@option.Value" selected="@(option.Value?.Equals(existingResponseValue, StringComparison.OrdinalIgnoreCase) == true)" data-score="@(option.Score ?? 0)">@option.Text</option>
+                }
+            </select>
+            break;
+
+        case "File":
+            <input type="file" id="@inputId" name="@inputName" class="form-control" @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+            @if (!string.IsNullOrEmpty(existingResponseValue))
+            {
+                <small class="text-muted">Existing file: <a href="@existingResponseValue" target="_blank">View File</a></small>
+            }
+            break;
+
+        case "Signature":
+            <div class="border border-2 border-dashed rounded p-4 text-center">
+                <i class="fas fa-signature fa-2x text-muted mb-2"></i>
+                <p class="text-muted mb-0">Signature Pad</p>
+                <small class="text-muted">Click to sign</small>
+                <input type="hidden" id="@inputId" name="@inputName" value="@existingResponseValue" @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+            </div>
+            break;
+
+        default:
+            <p class="text-danger">Unknown Item Type: @Model.ItemTypeName</p>
+            break;
+    }
+    @* Display validation message for the input if any *@
+    @Html.ValidationMessage(inputName, new { @class = "text-danger" })
+</div>

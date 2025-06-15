@@ -1,0 +1,229 @@
+@model AspnetCoreMvcFull.Models.ViewModels.FollowUpAuditViewModel
+
+@{
+    ViewData["Title"] = $"Follow Up Audit - {Model.FormName}";
+    Layout = "_ContentNavbarLayout"; // Ensure this matches your actual layout file name
+
+    // Calculate total max score only for items that will be displayed in this follow-up audit
+    var totalMaxScoreForFollowUp = Model.Sections
+        .SelectMany(s => s.Items) // Access items via the new Sections property
+        .Where(item => (item.ExistingScoredValue ?? 0) < (item.MaxScore ?? 0)) // Handled nullables in comparison
+        .Sum(item => item.MaxScore ?? 0);
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm rounded-3">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light py-3">
+                    <h5 class="card-title fw-bold text-dark mb-0">Follow Up Audit: @Model.FormName</h5>
+                    <a asp-action="Index" asp-controller="Audit" class="btn btn-secondary shadow-sm">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Audit List
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">@Model.FormDescription</p>
+
+                    @* Check if there are any items AT ALL that require follow-up across all sections *@
+                    @if (Model.Sections.Count == 0 || Model.Sections.All(s => s.Items.All(item => (item.ExistingScoredValue ?? 0) >= (item.MaxScore ?? 0)))) // Prefer comparing 'Count' to 0
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5 class="text-muted">No items require follow-up!</h5>
+                            <p class="text-muted">All questions in this form were scored fully in the previous audit.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <form id="auditForm" asp-action="SubmitFollowUpAudit" asp-controller="Audit" method="post" asp-antiforgery="true">
+                            <input type="hidden" name="OriginalAuditInstanceId" value="@Model.OriginalAuditInstanceId" />
+                            <input type="hidden" name="FormTypeId" value="@Model.FormTypeId" />
+                            @* You might also need a hidden field for the newStatus upon submission of a follow-up *@
+                            @* <input type="hidden" name="newStatus" value="FollowUpCompleted" /> *@
+
+                            @{ int globalSubmittedItemIndex = 0; } @* Initialize a global index for submitted items. This is crucial for correct model binding. *@
+
+                            @* Loop through the sections in the ViewModel *@
+                            @for (int sectionIndex = 0; sectionIndex < Model.Sections.Count; sectionIndex++)
+                            {
+                                var sec = Model.Sections[sectionIndex];
+                                // Filter items within this specific section that require follow-up
+                                var sectionItemsToDisplay = sec.Items
+                                    .Where(itemDto => (itemDto.ExistingScoredValue ?? 0) < (itemDto.MaxScore ?? 0))
+                                    .OrderBy(itemDto => itemDto.FormItem.Order)
+                                    .ToList();
+
+                                // Only display the section card if there are items within it that need follow-up
+                                if (sectionItemsToDisplay.Count > 0) // Prefer comparing 'Count' to 0
+                                {
+                                    <div class="card mb-4">
+                                        <div class="card-header">
+                                            <h4 class="mb-0">@sec.Title</h4>
+                                            <small class="text-muted">@sec.Description</small>
+                                        </div>
+                                        <div class="card-body">
+                                            @for (int itemDisplayIndex = 0; itemDisplayIndex < sectionItemsToDisplay.Count; itemDisplayIndex++)
+                                            {
+                                                var itemDto = sectionItemsToDisplay[itemDisplayIndex];
+                                                <div class="mb-4">
+                                                    @if (itemDto.HasLooping)
+                                                    {
+                                                        <div class="alert alert-info">
+                                                            <i class="fas fa-redo me-2"></i>
+                                                            <strong>Looping Item:</strong> This question repeats @itemDto.LoopCount times for each @itemDto.LoopLabel
+                                                        </div>
+
+                                                        @for (int i = 0; i < itemDto.LoopCount; i++)
+                                                        {
+                                                            <div class="border rounded p-3 mb-3">
+                                                                <h6 class="text-primary">@itemDto.LoopLabel @(i + 1)</h6>
+                                                                @{
+                                                                    string currentSubmittedItemPrefix = $"Items[{globalSubmittedItemIndex}].";
+                                                                    @await Html.PartialAsync("_FollowUpItemRenderer", itemDto.FormItem, new ViewDataDictionary(ViewData)
+                                                                    {
+                                                                        { "LoopIndex", i },
+                                                                        { "FollowUpAuditItemDto", itemDto },
+                                                                        { "HtmlFieldNamePrefix", currentSubmittedItemPrefix }
+                                                                    });
+
+                                                                    <input type="hidden" name="@(currentSubmittedItemPrefix)OriginalAuditResponseId" value="@itemDto.AuditResponseId" />
+                                                                    <input type="hidden" name="@(currentSubmittedItemPrefix)ItemId" value="@itemDto.FormItemId" />
+                                                                    <input type="hidden" name="@(currentSubmittedItemPrefix)LoopIndex" value="@i" />
+
+                                                                    globalSubmittedItemIndex++;
+                                                                }
+                                                            </div>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        
+                                                            string currentSubmittedItemPrefix = $"Items[{globalSubmittedItemIndex}].";
+                                                            @await Html.PartialAsync("_FollowUpItemRenderer", itemDto.FormItem, new ViewDataDictionary(ViewData)
+                                                            {
+                                                                { "FollowUpAuditItemDto", itemDto },
+                                                                { "HtmlFieldNamePrefix", currentSubmittedItemPrefix }
+                                                            });
+
+                                                            <input type="hidden" name="@(currentSubmittedItemPrefix)OriginalAuditResponseId" value="@itemDto.AuditResponseId" />
+                                                            <input type="hidden" name="@(currentSubmittedItemPrefix)ItemId" value="@itemDto.FormItemId" />
+                                                            <input type="hidden" name="@(currentSubmittedItemPrefix)LoopIndex" value="@itemDto.LoopIndex" />
+
+                                                            globalSubmittedItemIndex++;
+                                                        
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="text-primary mb-3">Scoring Summary for Follow-up</h5>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="text-center">
+                                                <div class="h4 text-success" id="currentScore">0</div>
+                                                <small class="text-muted">Current Follow-up Score</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-center">
+                                                <div class="h4 text-primary" id="maxScore">@totalMaxScoreForFollowUp</div>
+                                                <small class="text-muted">Maximum Possible Follow-up Score</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-center">
+                                                <div class="h4 text-warning" id="percentage">0%</div>
+                                                <small class="text-muted">Follow-up Percentage</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    Submit Follow Up Audit
+                                </button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <script>
+        function calculateScore() {
+            let currentScore = 0;
+            // FIX: Get maxScore directly from server-side model, similar to AuditForm.cshtml
+            // This bypasses potential timing issues with reading from the DOM element.
+            const maxScore = @(totalMaxScoreForFollowUp); // Directly embed the Razor-calculated value
+
+            // Select all relevant input types that contribute to scoring
+            document.querySelectorAll('#auditForm input[data-max-score], #auditForm select[data-max-score], #auditForm textarea[data-max-score]').forEach(input => {
+                const itemMaxScore = parseFloat(input.getAttribute('data-max-score'));
+
+                // Skip if itemMaxScore is not a valid number (e.g., if item is not scoreable or attribute is missing)
+                if (isNaN(itemMaxScore)) {
+                    return;
+                }
+
+                // Logic based on input type - kept consistent with AuditForm
+                if (input.type === 'number') {
+                    currentScore += Math.min(parseFloat(input.value) || 0, itemMaxScore);
+                } else if (input.type === 'checkbox') {
+                    if (input.checked) {
+                        currentScore += itemMaxScore;
+                    }
+                } else if (input.type === 'radio') {
+                    if (input.checked) {
+                        const radioScoreAttr = input.getAttribute('data-score');
+                        if (radioScoreAttr) {
+                            currentScore += parseFloat(radioScoreAttr);
+                        } else {
+                            currentScore += itemMaxScore; // Fallback: if no data-score on option
+                        }
+                    }
+                } else if (input.tagName === 'SELECT') {
+                    const selectedOption = input.options[input.selectedIndex];
+                    if (selectedOption) {
+                        const optionScoreAttr = selectedOption.getAttribute('data-score');
+                        if (optionScoreAttr) {
+                            currentScore += parseFloat(optionScoreAttr);
+                        } else if (input.value) { // If an option is selected (has a value) but no specific score, use item's max score
+                            currentScore += itemMaxScore;
+                        }
+                    }
+                } else if (input.tagName === 'TEXTAREA' || input.type === 'text') {
+                    if (input.value.trim() !== '') {
+                        currentScore += itemMaxScore;
+                    }
+                }
+            });
+
+            // Update the display elements
+            document.getElementById('currentScore').textContent = currentScore.toFixed(0); // Display as integer
+            let percentage = 0;
+            if (maxScore > 0) { // Defensive check to prevent division by zero
+                percentage = (currentScore / maxScore) * 100;
+            }
+            document.getElementById('percentage').textContent = percentage.toFixed(0) + '%';
+        }
+
+        // Recalculate score when inputs change (text input and selection changes)
+        document.addEventListener('change', calculateScore);
+        document.addEventListener('input', calculateScore);
+
+        // Initial score calculation on page load
+        document.addEventListener('DOMContentLoaded', calculateScore);
+    </script>
+
+    <partial name="_ValidationScriptsPartial" />
+}
