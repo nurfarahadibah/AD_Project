@@ -1,0 +1,52 @@
+@model AspnetCoreMvcFull.Models.ViewModels.RequiredDocumentViewModel
+
+@{
+	var index = ViewData["index"];
+	var disableRemove = Model.HasUploads ? "disabled" : "";
+	var tooltipText = Model.HasUploads ? $"Cannot remove: {Model.UploadedDocumentCount} document(s) uploaded." : "Remove document requirement";
+	// Ensure you have the Remixicon CSS linked in your project, e.g., in _Layout.cshtml:
+	// <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+}
+
+<div class="row g-3 align-items-end mb-2 required-document-row" data-index="@index">
+	<input type="hidden" name="RequiredDocuments[@index].Id" value="@Model.Id" />
+	<div class="col-md-5">
+		<label for="RequiredDocuments_@(index)__DocumentName" class="form-label">Document Name</label>
+		<input type="text" id="RequiredDocuments_@(index)__DocumentName" name="RequiredDocuments[@index].DocumentName" class="form-control" value="@Model.DocumentName" />
+		<span class="text-danger" data-valmsg-for="RequiredDocuments[@index].DocumentName" data-valmsg-replace="true"></span>
+	</div>
+	<div class="col-md-6">
+		<label for="RequiredDocuments_@(index)__Description" class="form-label">Description (Optional)</label>
+		<input type="text" id="RequiredDocuments_@(index)__Description" name="RequiredDocuments[@index].Description" class="form-control" value="@Model.Description" />
+		<span class="text-danger" data-valmsg-for="RequiredDocuments[@index].Description" data-valmsg-replace="true"></span>
+	</div>
+	<div class="col-md-1 text-center">
+		<button type="button" class="btn btn-danger btn-sm remove-document"
+		@disableRemove
+				data-bs-toggle="tooltip" data-bs-placement="top" title="@tooltipText">
+			@if (Model.HasUploads)
+			{
+				<i class="ri-forbid-line"></i> @* Or ri-error-warning-line, ri-close-circle-line *@
+			}
+			else
+			{
+				<i class="ri-delete-bin-line"></i>
+			}
+		</button>
+		@if (Model.HasUploads)
+		{
+			<small class="d-block text-muted">(@Model.UploadedDocumentCount)</small>
+		}
+	</div>
+	<input type="hidden" name="RequiredDocuments[@index].IsRequired" value="true" />
+</div>
+
+<script>
+	// Initialize tooltips (requires Bootstrap JS bundle)
+	document.addEventListener('DOMContentLoaded', function () {
+		var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+		var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+			return new bootstrap.Tooltip(tooltipTriggerEl)
+		})
+	});
+</script>

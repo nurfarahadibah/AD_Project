@@ -1,0 +1,186 @@
+@model AspnetCoreMvcFull.Models.JenisForm
+
+@{
+    ViewData["Title"] = $"User - {Model.Name}";
+    Layout = "_ContentNavbarLayout"; // Ensure this matches your actual layout file name
+}
+
+@* @Html.AntiForgeryToken() - This is redundant if you use asp-antiforgery="true" on the form *@
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>@Model.Name</h2>
+                    <p class="text-muted">@Model.Description</p>
+                </div>
+                @* The "Back to Builder" link is removed for the auditor's view *@
+            </div>
+
+            @if (!Model.Sections.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No sections to audit</h5>
+                    <p class="text-muted">This form does not have any sections configured yet.</p>
+                </div>
+            }
+            else
+            {
+                <form id="auditForm" asp-action="SubmitAudit" asp-controller="Audit" method="post" asp-antiforgery="true">
+                    @* Hidden fields for formTypeId. newStatus might change based on audit workflow. *@
+                    <input type="hidden" name="formTypeId" value="@Model.FormTypeId" />
+                    @* The newStatus value might be dynamic or depend on the audit process (e.g., submitted, reviewed, etc.) *@
+                    @* <input type="hidden" name="newStatus" value="X" /> *@
+
+                    @foreach (var sec in Model.Sections.OrderBy(s => s.Order))
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4 class="mb-0">@sec.Title</h4>
+                                <small class="text-muted">@sec.Description</small>
+                            </div>
+                            <div class="card-body">
+                                @if (!sec.Items.Any())
+                                {
+                                    <div class="text-center py-3">
+                                        <p class="text-muted">No items in this section</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @foreach (var item in sec.Items.OrderBy(i => i.Order))
+                                    {
+                                        <div class="mb-4">
+                                            @if (item.HasLooping)
+                                            {
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-redo me-2"></i>
+                                                    <strong>Looping Item:</strong> This question repeats @item.LoopCount times for each @item.LoopLabel
+                                                </div>
+
+                                                @for (int i = 0; i < item.LoopCount; i++) @* Changed from 1 to 0 based on C# loopIndex in controller *@
+                                                {
+                                                    <div class="border rounded p-3 mb-3">
+                                                        <h6 class="text-primary">@item.LoopLabel @(i + 1)</h6> @* Display (i + 1) for user-friendly 1-based numbering *@
+                                                        @await Html.PartialAsync("_ItemRenderer", item, new ViewDataDictionary(ViewData) { { "LoopIndex", i } })
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                @await Html.PartialAsync("_ItemRenderer", item)
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="text-primary mb-3">Scoring Summary</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-success" id="currentScore">0</div>
+                                        <small class="text-muted">Current Score</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-primary" id="maxScore">@Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0)</div>
+                                        <small class="text-muted">Maximum Possible</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-warning" id="percentage">0%</div>
+                                        <small class="text-muted">Percentage</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Submit Audit Form
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <script>
+        function calculateScore() {
+            let currentScore = 0;
+            const maxScore = @Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0);
+
+            document.querySelectorAll('#auditForm input, #auditForm select, #auditForm textarea').forEach(input => {
+                const maxScoreAttr = input.getAttribute('data-max-score');
+                if (maxScoreAttr) {
+                    const itemMaxScore = parseInt(maxScoreAttr);
+
+                    // Handle looped items where input names might be like "123_loop_0", "123_loop_1"
+                    // The client-side score calculation needs to account for this.
+                    // If you have a single input for each looped instance, the current approach should work.
+                    // If you have multiple radio buttons for one looped item, this will need refinement.
+
+                    if (input.type === 'number') {
+                        currentScore += Math.min(parseInt(input.value) || 0, itemMaxScore);
+                    } else if (input.type === 'checkbox') {
+                        // For a single checkbox: If checked, add score.
+                        if (input.checked) {
+                            currentScore += itemMaxScore;
+                        }
+                        // For multiple checkboxes with the same name (like a multi-select checkbox group),
+                        // this logic might need adjustment if you have distinct scores per checkbox option.
+                        // The current code assumes one checkbox for the item, or all selected checkboxes sum to itemMaxScore.
+                    } else if (input.type === 'radio') {
+                        // For radio buttons, only add score if the specific selected radio button has a maxScoreAttr
+                        // (which it should if _ItemRenderer sets it for each radio option).
+                        // If it's a group and only the selected one matters, this is fine.
+                        if (input.checked) {
+                            currentScore += itemMaxScore;
+                        }
+                    } else if (input.tagName === 'SELECT' && input.value) {
+                        const selectedOption = input.options[input.selectedIndex];
+                        if (selectedOption) {
+                            const optionScoreAttr = selectedOption.getAttribute('data-score');
+                            if (optionScoreAttr) {
+                                currentScore += parseInt(optionScoreAttr);
+                            } else {
+                                // Fallback: if no data-score on option, use item's max score if any option selected
+                                currentScore += itemMaxScore;
+                            }
+                        }
+                    } else if (input.tagName === 'TEXTAREA' || (input.type === 'text' && input.value)) {
+                        // For text/textarea, if it's not empty, award max score
+                        if (input.value.trim() !== '') {
+                            currentScore += itemMaxScore;
+                        }
+                    }
+                    // Add logic for ItemType.File and ItemType.Signature if you handle their score client-side
+                    // (e.g., if signature pad has data, or file input has a file)
+                }
+            });
+
+            document.getElementById('currentScore').textContent = currentScore;
+            document.getElementById('percentage').textContent =
+                maxScore > 0 ? Math.round((currentScore / maxScore) * 100) + '%' : '0%';
+        }
+
+        // Recalculate score when inputs change
+        document.addEventListener('change', calculateScore);
+        document.addEventListener('input', calculateScore);
+
+        // Initial score calculation on page load
+        document.addEventListener('DOMContentLoaded', calculateScore);
+    </script>
+}

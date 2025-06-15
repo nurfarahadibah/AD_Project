@@ -1,0 +1,177 @@
+@model AspnetCoreMvcFull.Models.JenisForm
+
+@{
+    ViewData["Title"] = $"Preview - {Model.Name}";
+}
+
+@* Anti-Forgery Token is still good to have, especially if you manually add it to form data for other purposes or if any other AJAX might be introduced. For a direct form post, asp-antiforgery="true" on the form is enough. *@
+@Html.AntiForgeryToken()
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>@Model.Name</h2>
+                    <p class="text-muted">@Model.Description</p>
+                </div>
+                <a href="@Url.Action("Builder", new { id = Model.FormTypeId })" class="btn btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i>Back to Builder
+                </a>
+            </div>
+
+            @* No need for messageContainer if we're doing a full page reload for submit *@
+            @* <div id="messageContainer" class="mt-4 mb-4"></div> *@
+
+            @if (!Model.Sections.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No sections to preview</h5>
+                    <p class="text-muted">Add sections and items in the builder to see the preview</p>
+                </div>
+            }
+            else
+            {
+                @* IMPORTANT CHANGE: Make this a direct POST form to UpdateFormStatus *@
+                <form id="auditForm" asp-action="UpdateFormStatus" asp-controller="FormBuilder" method="post" asp-antiforgery="true">
+                    @* Hidden fields for formTypeId and newStatus *@
+                    <input type="hidden" name="formTypeId" value="@Model.FormTypeId" />
+                    <input type="hidden" name="newStatus" value="2" /> @* Corresponds to FormStatus.Published *@
+
+                    @foreach (var sec in Model.Sections.OrderBy(s => s.Order))
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4 class="mb-0">@sec.Title</h4>
+                                <small class="text-muted">@sec.Description</small>
+                            </div>
+                            <div class="card-body">
+                                @if (!sec.Items.Any())
+                                {
+                                    <div class="text-center py-3">
+                                        <p class="text-muted">No items in this section</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @foreach (var item in sec.Items.OrderBy(i => i.Order))
+                                    {
+                                        <div class="mb-4">
+                                            @if (item.HasLooping)
+                                            {
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-redo me-2"></i>
+                                                    <strong>Looping Item:</strong> This question repeats @item.LoopCount times for each @item.LoopLabel
+                                                </div>
+
+                                                @for (int i = 1; i <= item.LoopCount; i++)
+                                                {
+                                                    <div class="border rounded p-3 mb-3">
+                                                        <h6 class="text-primary">@item.LoopLabel @i</h6>
+                                                        @await Html.PartialAsync("_ItemRenderer", item, new ViewDataDictionary(ViewData) { { "LoopIndex", i } })
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                @await Html.PartialAsync("_ItemRenderer", item)
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="text-primary mb-3">Scoring Summary</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-success" id="currentScore">0</div>
+                                        <small class="text-muted">Current Score</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-primary" id="maxScore">@Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0)</div>
+                                        <small class="text-muted">Maximum Possible</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <div class="h4 text-warning" id="percentage">0%</div>
+                                        <small class="text-muted">Percentage</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        @* IMPORTANT CHANGE: Change type to "submit" and remove onclick *@
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Submit Audit Form
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <script>
+        function calculateScore() {
+            let currentScore = 0;
+            const maxScore = @Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0);
+
+            // Calculate score based on form inputs
+            document.querySelectorAll('#auditForm input, #auditForm select, #auditForm textarea').forEach(input => {
+                const maxScoreAttr = input.getAttribute('data-max-score');
+                if (maxScoreAttr) {
+                    const itemMaxScore = parseInt(maxScoreAttr);
+
+                    if (input.type === 'number') {
+                        currentScore += Math.min(parseInt(input.value) || 0, itemMaxScore);
+                    } else if (input.type === 'checkbox' && input.checked) {
+                        currentScore += itemMaxScore;
+                    } else if (input.type === 'radio' && input.checked) {
+                        currentScore += itemMaxScore;
+                    } else if (input.tagName === 'SELECT' && input.value) { // For dropdowns, check if an option is selected
+                        // If dropdown options have data-score attributes, use those.
+                        // Otherwise, if any option is selected, it contributes MaxScore (simple logic).
+                        const selectedOption = input.options[input.selectedIndex];
+                        if (selectedOption) {
+                             const optionScoreAttr = selectedOption.getAttribute('data-score');
+                             if (optionScoreAttr) {
+                                currentScore += parseInt(optionScoreAttr);
+                             } else {
+                                currentScore += itemMaxScore; // Default if no specific option score
+                             }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('currentScore').textContent = currentScore;
+            document.getElementById('percentage').textContent =
+                maxScore > 0 ? Math.round((currentScore / maxScore) * 100) + '%' : '0%';
+        }
+
+        // IMPORTANT: Remove the submitAuditForm() function entirely as it's no longer needed for form submission.
+        // It was the source of the "Unexpected token '<'" error.
+
+        // You can remove the displayMessage function as well if no other AJAX calls need it.
+        // If you plan to add AJAX for other features, keep displayMessage and modify it.
+
+        // Recalculate score when inputs change
+        document.addEventListener('change', calculateScore);
+        document.addEventListener('input', calculateScore); // Use input for immediate feedback on text/number fields
+
+        // Initial score calculation on page load
+        document.addEventListener('DOMContentLoaded', calculateScore);
+    </script>
+}

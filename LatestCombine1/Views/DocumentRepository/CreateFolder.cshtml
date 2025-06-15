@@ -1,0 +1,126 @@
+@model AspnetCoreMvcFull.Models.ViewModels.CreateFolderViewModel
+
+@{
+    ViewData["Title"] = "Create New Compliance Folder";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">@ViewData["Title"]</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateFolder" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3 form-floating form-floating-outline">
+                        <input asp-for="Name" class="form-control" placeholder="Enter folder name" />
+                        <label asp-for="Name"></label>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-floating form-floating-outline">
+                        <select asp-for="ComplianceCategoryId" class="form-select" asp-items="@Model.ComplianceCategories" id="ComplianceCategoryId">
+                            <option value="">-- Select Compliance Type --</option>
+                        </select>
+                        <label for="ComplianceCategoryId">@Html.DisplayNameFor(model => model.ComplianceCategoryId)</label>
+                        <span asp-validation-for="ComplianceCategoryId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-floating form-floating-outline">
+                        <textarea asp-for="Description" class="form-control h-px-100" placeholder="Enter a description for the folder" rows="3"></textarea>
+                        <label asp-for="Description"></label>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <hr />
+                    <h5>Required Documents</h5>
+                    <div id="requiredDocumentsContainer">
+                        @if (Model.RequiredDocuments != null && Model.RequiredDocuments.Any())
+                        {
+                            for (int i = 0; i < Model.RequiredDocuments.Count; i++)
+                            {
+                                @Html.Partial("_RequiredDocumentFormRow", Model.RequiredDocuments[i], new ViewDataDictionary(ViewData) { { "index", i } })
+                            }
+                        }
+                    </div>
+                    <button type="button" id="addRequiredDocument" class="btn btn-outline-primary btn-sm mt-2">Add Required Document</button>
+
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        <button type="submit" class="btn btn-primary">Create Folder</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validation.unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let requiredDocumentIndex = @(Model.RequiredDocuments?.Count ?? 0);
+
+            document.getElementById('addRequiredDocument').addEventListener('click', function () {
+                const container = document.getElementById('requiredDocumentsContainer');
+                // Updated newRowHtml to use the icon instead of text for the remove button
+                const newRowHtml = `
+                    <div class="row g-3 align-items-end mb-2 required-document-row" data-index="${requiredDocumentIndex}">
+                        <div class="col-md-5">
+                            <div class="form-floating form-floating-outline">
+                                <input type="text" id="RequiredDocuments_${requiredDocumentIndex}__DocumentName" name="RequiredDocuments[${requiredDocumentIndex}].DocumentName" class="form-control" placeholder="Enter document name" />
+                                <label for="RequiredDocuments_${requiredDocumentIndex}__DocumentName">Document Name</label>
+                                <span class="text-danger" data-valmsg-for="RequiredDocuments[${requiredDocumentIndex}].DocumentName" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating form-floating-outline">
+                                <input type="text" id="RequiredDocuments_${requiredDocumentIndex}__Description" name="RequiredDocuments[${requiredDocumentIndex}].Description" class="form-control" placeholder="Enter description" />
+                                <label for="RequiredDocuments_${requiredDocumentIndex}__Description">Description (Optional)</label>
+                                <span class="text-danger" data-valmsg-for="RequiredDocuments[${requiredDocumentIndex}].Description" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-1 text-center">
+                            <button type="button" class="btn btn-danger btn-sm btn-icon waves-effect waves-light remove-document" title="Remove document requirement">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                         <input type="hidden" name="RequiredDocuments[${requiredDocumentIndex}].IsRequired" value="true" />
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', newRowHtml);
+
+                const form = document.querySelector('form');
+                if (form) {
+                    const validator = $.data(form, 'validator');
+                    if (validator) {
+                        validator.unobtrusive.parse(container);
+                    }
+                }
+
+                requiredDocumentIndex++;
+            });
+
+            document.getElementById('requiredDocumentsContainer').addEventListener('click', function (event) {
+                if (event.target.classList.contains('remove-document')) {
+                    // Ensure we get the button itself if the icon was clicked
+                    const button = event.target.closest('.remove-document');
+                    if (button) {
+                        button.closest('.required-document-row').remove();
+                    }
+                }
+            });
+        });
+    </script>
+}

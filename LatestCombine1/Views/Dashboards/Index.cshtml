@@ -1,0 +1,276 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@model AspnetCoreMvcFull.Models.ViewModels.DashboardViewModels 
+
+@{
+  ViewData["Title"] = "Dashboard - Reporting";
+}
+
+@section VendorStyles {
+<link rel="stylesheet" href="~/vendor/libs/apex-charts/apex-charts.css" />
+}
+
+@section VendorScripts {
+<script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
+}
+
+@section PageScripts {
+@* New script for dashboard analytics, can be combined with dashboards-analytics.js or a new file *@
+<script>
+    // Placeholder for chart data, in a real app this would come from the controller
+    // or an AJAX call
+    var nonComplianceTrendsData = {
+        categories: ['Missing Documents', 'Incorrect Procedures', 'Policy Violations', 'Data Entry Errors', 'Security Lapses'],
+        series: [{
+            name: 'Occurrences',
+            data: [45, 29, 38, 22, 18] // Dummy data for non-compliance occurrences
+        }]
+    };
+
+    var auditorPerformanceChartData = {
+        series: [
+            { name: 'Total Audits', data: [Model.AuditorPerformance.TotalAuditsDone] },
+            { name: 'Overdue Audits', data: [Model.AuditorPerformance.OverdueAudits] },
+            { name: 'Rejected Audits', data: [Model.AuditorPerformance.RejectedAudits] }
+        ],
+        categories: [Model.AuditorPerformance.CurrentAuditorName] // Use current auditor's name as category
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Render Non-Compliance Trends Bar Chart
+        var nonComplianceChartOptions = {
+            chart: {
+                type: 'bar',
+                height: 350,
+                toolbar: {
+                    show: false
+                }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '55%',
+                    endingShape: 'rounded'
+                },
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                show: true,
+                width: 2,
+                colors: ['transparent']
+            },
+            series: nonComplianceTrendsData.series,
+            xaxis: {
+                categories: nonComplianceTrendsData.categories,
+            },
+            yaxis: {
+                title: {
+                    text: 'Number of Occurrences'
+                }
+            },
+            fill: {
+                opacity: 1
+            },
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return val + " occurrences"
+                    }
+                }
+            }
+        };
+
+        var nonComplianceChart = new ApexCharts(document.querySelector("#nonComplianceTrendsChart"), nonComplianceChartOptions);
+        nonComplianceChart.render();
+
+        // Render Auditor Performance Bar Chart
+        var auditorPerformanceChartOptions = {
+            chart: {
+                type: 'bar',
+                height: 350,
+                stacked: false, // Not stacked for clearer comparison
+                toolbar: {
+                    show: false
+                }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '70%',
+                    endingShape: 'rounded'
+                },
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                show: true,
+                width: 2,
+                colors: ['transparent']
+            },
+            series: auditorPerformanceChartData.series,
+            xaxis: {
+                categories: auditorPerformanceChartData.categories,
+                labels: {
+                    show: true // Ensure auditor name is shown
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'Number of Audits'
+                }
+            },
+            fill: {
+                opacity: 1
+            },
+            colors: ['#008FFB', '#FF4560', '#FEB019'], // Colors for Total, Overdue, Rejected
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return val + " audits"
+                    }
+                }
+            }
+        };
+
+        var auditorPerformanceChart = new ApexCharts(document.querySelector("#auditorPerformanceChart"), auditorPerformanceChartOptions);
+        auditorPerformanceChart.render();
+
+
+        // For the Compliance Summary Gauge/Donut Chart (Example using a simple donut for percentage)
+        var complianceSummaryChartOptions = {
+            chart: {
+                type: 'donut',
+                height: 250
+            },
+            series: [Model.ComplianceSummary.PercentageOfCompletedAudits, (100 - Model.ComplianceSummary.PercentageOfCompletedAudits)],
+            labels: ['Completed', 'Incomplete'],
+            colors: ['#00E396', '#FF4560'], // Green for completed, Red for incomplete
+            legend: {
+                show: false
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                label: 'Total Audits',
+                                formatter: function (w) {
+                                    return w.globals.seriesTotals.reduce((a, b) => {
+                                        return a + b
+                                    }, 0) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        var complianceSummaryChart = new ApexCharts(document.querySelector("#complianceSummaryChart"), complianceSummaryChartOptions);
+        complianceSummaryChart.render();
+
+    });
+</script>
+<script src="~/js/dashboards-analytics.js"></script> @* Your existing script *@
+}
+
+@* ************** Content ************** *@
+<div class="row gy-6">
+    <div class="col-lg-6 col-12">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title m-0 me-2">Auditor Performance: @Model.AuditorPerformance.CurrentAuditorName</h5>
+                <div class="dropdown">
+                    <button class="btn text-muted p-0" type="button" id="auditorPerformanceDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="ri-more-2-line ri-24px"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="auditorPerformanceDropdown">
+                        <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
+                        <a class="dropdown-item" href="javascript:void(0);">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-4">
+                        <h4 class="mb-0">@Model.AuditorPerformance.TotalAuditsDone</h4>
+                        <small>Audits Done</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="mb-0 text-warning">@Model.AuditorPerformance.OverdueAudits</h4>
+                        <small>Overdue</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="mb-0 text-danger">@Model.AuditorPerformance.RejectedAudits</h4>
+                        <small>Rejected</small>
+                    </div>
+                </div>
+                <div id="auditorPerformanceChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-12">
+        <div class="row gy-6">
+            <div class="col-md-6 col-12">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title m-0 me-2">Compliance Summary</h5>
+                        <div class="dropdown">
+                            <button class="btn text-muted p-0" type="button" id="complianceSummaryDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="ri-more-2-line ri-24px"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="complianceSummaryDropdown">
+                                <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body text-center">
+                         <div id="complianceSummaryChart"></div> @* Chart for percentage *@
+                        <h4 class="mb-2">@Model.ComplianceSummary.PercentageOfCompletedAudits% Completed</h4>
+                        <p class="mb-0">
+                            <span class="text-warning">@Model.ComplianceSummary.PendingCorrectiveActions</span> Pending Corrective Actions
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-12">
+                <div class="card h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-center align-items-center">
+                        <div class="avatar avatar-lg bg-label-primary rounded-circle mb-4">
+                            <i class="ri-file-download-line ri-36px"></i>
+                        </div>
+                        <h5 class="card-title mb-2">Generate Reports</h5>
+                        <p class="text-muted mb-4">Download detailed audit logs and compliance data.</p>
+                        <a href="javascript:void(0);" class="btn btn-primary" onclick="alert('Report generation functionality to be implemented!')">
+                            <i class="ri-download-line me-2"></i>Export Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+            </div>
+    </div>
+    <div class="col-12">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title m-0 me-2">Non-Compliance Trends</h5>
+                <div class="dropdown">
+                    <button class="btn text-muted p-0" type="button" id="nonComplianceDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="ri-more-2-line ri-24px"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="nonComplianceDropdown">
+                        <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
+                        <a class="dropdown-item" href="javascript:void(0);">Filter by Category</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="nonComplianceTrendsChart"></div> @* Chart for non-compliance trends *@
+            </div>
+        </div>
+    </div>
+    </div>

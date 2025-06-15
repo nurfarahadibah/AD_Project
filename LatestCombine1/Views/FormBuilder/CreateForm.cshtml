@@ -1,0 +1,54 @@
+@model AspnetCoreMvcFull.Models.ViewModels.CreateJenisFormViewModel
+
+@{
+	ViewData["Title"] = "Create New Form";
+}
+
+<div class="container">
+	<div class="row justify-content-center">
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">
+					<h4 class="mb-0">Create New Form Type (Jenis Form)</h4>
+					<small class="text-muted">Define the basic information for your compliance audit form</small>
+				</div>
+				<div class="card-body">
+					<form asp-action="CreateForm" method="post">
+						<div class="mb-3">
+							<label asp-for="Name" class="form-label">Form Name</label>
+							<input asp-for="Name" class="form-control" placeholder="e.g., Food Safety Audit Form" />
+							<span asp-validation-for="Name" class="text-danger"></span>
+						</div>
+
+						<div class="mb-3">
+							<label asp-for="Description" class="form-label">Description</label>
+							<textarea asp-for="Description" class="form-control" rows="4"
+									  placeholder="Describe the purpose and scope of this form..."></textarea>
+							<span asp-validation-for="Description" class="text-danger"></span>
+						</div>
+
+						<div class="mb-3">
+							<label asp-for="ComplianceCategoryId" class="form-label"></label>
+							<select asp-for="ComplianceCategoryId"
+									asp-items="@Model.ComplianceCategories"
+									class="form-select">
+								<option value="">-- Select Compliance Category --</option>
+							</select>
+							<span asp-validation-for="ComplianceCategoryId" class="text-danger"></span>
+						</div>
+						<div class="d-grid gap-2">
+							<button type="submit" class="btn btn-primary">Create Form Type</button>
+							<a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancel</a>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}
