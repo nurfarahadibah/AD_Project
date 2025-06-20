@@ -1,0 +1,219 @@
+@model AspnetCoreMvcFull.Models.JenisForm
+@using AspnetCoreMvcFull.Models
+
+@{
+    ViewData["Title"] = Model.FormTypeId == 0 ? "Create New Audit Form" : $"Audit Form: {Model.Name}";
+    Layout = "_ContentNavbarLayout"; // Ensure this matches your actual layout file name
+
+    // Retrieve existing responses if available from ViewBag (for draft editing)
+    int? auditInstanceId = ViewBag.AuditInstanceId;
+    Dictionary<string, string> existingAuditResponses = ViewBag.ExistingAuditResponses ?? new Dictionary<string, string>();
+    bool isDraft = ViewBag.IsDraft ?? false;
+}
+
+<div class="container mt-4">
+    @* TOP SECTION: Back To Builder button and Main Title/Description (as seen in image) *@
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="text-start">
+            <h2 class="mb-0">@Model.Name</h2>
+            <p class="text-muted">@Model.Description</p>
+        </div>
+        <div>
+            @* Assuming "Back To Builder" links to your list of form templates *@
+            <a asp-controller="Audit" asp-action="ListFormTemplates" class="btn btn-secondary">Back To Builder</a>
+        </div>
+    </div>
+
+    @* MAIN FORM CONTENT: Wrapped in col-md-8 mx-auto for centering and narrower width *@
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <form id="auditForm" asp-action="SubmitAudit" asp-controller="Audit" method="post" asp-antiforgery="true">
+                        @* Hidden fields for formTypeId and the newStatus *@
+                        <input type="hidden" name="formTypeId" value="@Model.FormTypeId" />
+                        <input type="hidden" id="auditStatusInput" name="status" value="" />
+
+                        @* Hidden field for existing AuditInstanceId if editing a draft *@
+                        @if (auditInstanceId.HasValue)
+                        {
+                            <input type="hidden" name="auditInstanceId" value="@auditInstanceId.Value" />
+                        }
+
+                        @* Loop through sections, each becoming a card *@
+                        @foreach (var sec in Model.Sections.OrderBy(s => s.Order))
+                        {
+                            <div class="card mb-4">
+                                <div class="card-header bg-light"> @* The image does not show a distinct background for sub-card headers, consider removing bg-light if you want a cleaner look. *@
+                                    <h5 class="mb-0">@sec.Title</h5>
+                                    <small class="text-muted">@sec.Description</small>
+                                </div>
+                                <div class="card-body">
+                                    @if (!sec.Items.Any())
+                                    {
+                                        <div class="text-center py-3">
+                                            <p class="text-muted">No items in this section</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var item in sec.Items.OrderBy(i => i.Order))
+                                        {
+                                            <div class="mb-4">
+                                                @if (item.HasLooping)
+                                                {
+                                                    <div class="alert alert-info">
+                                                        <i class="fas fa-redo me-2"></i>
+                                                        <strong>Looping Item:</strong> This question repeats @item.LoopCount times for each @item.LoopLabel
+                                                    </div>
+
+                                                    for (int i = 0; i < item.LoopCount; i++)
+                                                    {
+                                                        <div class="border rounded p-3 mb-3">
+                                                            <h6 class="text-primary">@item.LoopLabel @(i + 1)</h6>
+                                                            @* RENDER INDIVIDUAL AUDIT ITEM HERE *@
+                                                            @* The _AuditItemRenderer partial should display item.Question, item.MaxScore, and the input field. *@
+                                                            @await Html.PartialAsync("_AuditItemRenderer", item, new ViewDataDictionary(ViewData) { { "LoopIndex", i }, { "ExistingResponses", existingAuditResponses } })
+                                                        </div>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    @* RENDER INDIVIDUAL AUDIT ITEM HERE *@
+                                                    @* The _AuditItemRenderer partial should display item.Question, item.MaxScore, and the input field. *@
+                                                    @await Html.PartialAsync("_AuditItemRenderer", item, new ViewDataDictionary(ViewData) { { "ExistingResponses", existingAuditResponses } })
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @* Scoring Summary Card *@
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="text-primary mb-3">Scoring Summary</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="h4 text-success" id="currentScore">0</div>
+                                            <small class="text-muted">Current Score</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="h4 text-primary" id="maxScore">@Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0)</div>
+                                            <small class="text-muted">Maximum Possible</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="h4 text-warning" id="percentage">0%</div>
+                                            <small class="text-muted">Percentage</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" id="saveDraftBtn" class="btn btn-secondary btn-lg shadow-sm" data-status="Draft">
+                                <i class="fas fa-save me-2"></i> Save Audit
+                            </button>
+                            <button type="submit" id="submitAuditBtn" class="btn btn-primary btn-lg shadow-sm" data-status="Completed">
+                                <i class="fas fa-paper-plane me-2"></i> Submit Audit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div> @* CLOSING div for col-md-8 mx-auto *@
+    </div> @* CLOSING div for row *@
+</div> @* CLOSING div for container *@
+
+@section PageScripts {
+    <script>
+        function calculateScore() {
+            let currentScore = 0;
+            const maxScore = @Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0);
+
+            document.querySelectorAll('#auditForm input[type="number"][data-max-score], #auditForm input[type="checkbox"][data-max-score], #auditForm input[type="radio"][data-max-score], #auditForm select[data-max-score], #auditForm textarea[data-max-score]').forEach(input => {
+                const itemMaxScore = parseFloat(input.getAttribute('data-max-score'));
+
+                if (isNaN(itemMaxScore)) {
+                    return;
+                }
+
+                if (input.type === 'number') {
+                    currentScore += Math.min(parseFloat(input.value) || 0, itemMaxScore);
+                } else if (input.type === 'checkbox') {
+                    if (input.checked) {
+                        currentScore += itemMaxScore;
+                    }
+                } else if (input.type === 'radio') {
+                    if (input.checked) {
+                        const radioScoreAttr = input.getAttribute('data-score');
+                        if (radioScoreAttr) {
+                            currentScore += parseFloat(radioScoreAttr);
+                        } else {
+                            currentScore += itemMaxScore;
+                        }
+                    }
+                } else if (input.tagName === 'SELECT') {
+                    const selectedOption = input.options[input.selectedIndex];
+                    if (selectedOption) {
+                        const optionScoreAttr = selectedOption.getAttribute('data-score');
+                        if (optionScoreAttr) {
+                            currentScore += parseFloat(optionScoreAttr);
+                        } else if (input.value) {
+                            currentScore += itemMaxScore;
+                        }
+                    }
+                } else if (input.tagName === 'TEXTAREA' || input.type === 'text') { // This logic is simplified for client-side
+                    if (input.value.trim() !== '') {
+                        // If text/textarea has a value, count max score. This is a common client-side
+                        // scoring assumption if the item is marked as scoreable and presence counts.
+                        currentScore += itemMaxScore;
+                    }
+                }
+            });
+
+            document.getElementById('currentScore').textContent = currentScore.toFixed(0);
+            document.getElementById('percentage').textContent =
+                maxScore > 0 ? Math.round((currentScore / maxScore) * 100) + '%' : '0%';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const auditForm = document.getElementById('auditForm');
+            const auditStatusInput = document.getElementById('auditStatusInput');
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+            const submitAuditBtn = document.getElementById('submitAuditBtn');
+
+            if (saveDraftBtn) {
+                saveDraftBtn.addEventListener('click', function () {
+                    auditStatusInput.value = this.getAttribute('data-status');
+                    auditForm.submit();
+                });
+            }
+
+            if (submitAuditBtn) {
+                submitAuditBtn.addEventListener('click', function (event) {
+                    if (!auditForm.checkValidity()) {
+                        event.preventDefault();
+                        auditForm.reportValidity();
+                        return;
+                    }
+                    auditStatusInput.value = this.getAttribute('data-status');
+                });
+            }
+
+            auditForm.addEventListener('change', calculateScore);
+            auditForm.addEventListener('input', calculateScore);
+
+            calculateScore();
+        });
+    </script>
+
+    <partial name="_ValidationScriptsPartial" />
+}

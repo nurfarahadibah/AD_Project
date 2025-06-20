@@ -1,0 +1,44 @@
+@model AspnetCoreMvcFull.Models.ViewModels.ManageUserRolesViewModel
+
+@{
+	ViewData["Title"] = "Manage User Roles";
+}
+
+<div class="content-wrapper">
+	<div class="container-xxl flex-grow-1 container-p-y">
+		<h4 class="py-3 mb-4"><span class="text-muted fw-light">Access Control / User Role Assignment /</span> Manage Roles</h4>
+
+		<div class="card mb-4">
+			<h5 class="card-header">Manage Roles for @Model.UserName</h5>
+			<div class="card-body">
+				<form asp-action="ManageRoles" asp-controller="UserRoleAssignment" method="post">
+					<input type="hidden" asp-for="UserId" />
+
+					<div class="mb-3">
+						<label class="form-label">Select Roles:</label>
+						<div class="row">
+							@for (int i = 0; i < Model.RoleSelections.Count; i++)
+							{
+								<div class="col-md-4 col-sm-6 mb-2">
+									<div class="form-check form-check-inline">
+										<input type="hidden" asp-for="RoleSelections[i].RoleId" />
+										<input type="hidden" asp-for="RoleSelections[i].RoleName" />
+										<input class="form-check-input" type="checkbox" asp-for="RoleSelections[i].IsSelected" id="@($"role_{Model.RoleSelections[i].RoleId}")" />
+										<label class="form-check-label" for="@($"role_{Model.RoleSelections[i].RoleId}")">
+											@Model.RoleSelections[i].RoleName
+										</label>
+									</div>
+								</div>
+							}
+						</div>
+					</div>
+
+					<div class="mt-4">
+						<button type="submit" class="btn btn-primary me-2">Save Changes</button>
+						<a asp-action="Index" asp-controller="Roles" class="btn btn-outline-secondary">Cancel</a> @* Changed redirect to Roles/Index *@
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

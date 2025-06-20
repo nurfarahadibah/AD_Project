@@ -1,0 +1,71 @@
+
+@model AspnetCoreMvcFull.Models.FormItem
+
+<div class="preview-item">
+    @switch (Model.ItemType)
+    {
+		case AspnetCoreMvcFull.Models.ItemType.Text:
+            <input type="text" class="form-control form-control-sm" placeholder="Text input preview" disabled />
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Number:
+            <input type="number" class="form-control form-control-sm" placeholder="Number input preview" disabled />
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Textarea:
+            <textarea class="form-control form-control-sm" rows="2" placeholder="Text area preview" disabled></textarea>
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Checkbox:
+            @if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                var options = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(Model.OptionsJson);
+                @foreach (var option in options.Take(2))
+                {
+                    <div class="form-check form-check-sm">
+                        <input type="checkbox" class="form-check-input" disabled />
+                        <label class="form-check-label small">@option</label>
+                    </div>
+                }
+                @if (options.Count > 2)
+                {
+                    <small class="text-muted">... and @(options.Count - 2) more options</small>
+                }
+            }
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Radio:
+            @if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                var options = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(Model.OptionsJson);
+                @foreach (var option in options.Take(2))
+                {
+                    <div class="form-check form-check-sm">
+                        <input type="radio" class="form-check-input" disabled />
+                        <label class="form-check-label small">@option</label>
+                    </div>
+                }
+                @if (options.Count > 2)
+                {
+                    <small class="text-muted">... and @(options.Count - 2) more options</small>
+                }
+            }
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Dropdown:
+            <select class="form-select form-select-sm" disabled>
+                <option>Select an option...</option>
+            </select>
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.File:
+            <input type="file" class="form-control form-control-sm" disabled />
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Signature:
+            <div class="border border-dashed rounded p-2 text-center">
+                <small class="text-muted">Signature Pad</small>
+            </div>
+            break;
+    }
+</div>

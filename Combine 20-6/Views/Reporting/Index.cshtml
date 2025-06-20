@@ -1,0 +1,99 @@
+@model AspnetCoreMvcFull.Models.ViewModels.ReportingViewModel
+@{
+	ViewData["Title"] = "Reports";
+}
+
+<h4 class="fw-bold py-3 mb-4">
+	<span class="text-muted fw-light">Reports /</span> @Model.UserRole Dashboard
+</h4>
+
+<div class="row">
+	<div class="col-12">
+		<p>This page displays comprehensive reports based on your role.</p>
+		<p>Current Tenant ID: @Model.CurrentTenantId (if applicable)</p>
+	</div>
+</div>
+
+<div class="card mb-4">
+	<h5 class="card-header">Documents Report</h5>
+	<div class="card-body">
+		<a asp-action="ExportDocumentsToCsv" class="btn btn-primary mb-3">Export Documents to CSV</a>
+		<div class="table-responsive text-nowrap">
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Title</th>
+						<th>Category</th>
+						<th>Status</th>
+						<th>Upload Date</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (Model.Documents.Any())
+					{
+						@foreach (var doc in Model.Documents)
+						{
+							<tr>
+								<td>@doc.Id</td>
+								<td>@doc.FileName</td>
+								<td>@doc.Description</td>
+								<td>@doc.Status</td>
+								<td>@doc.UploadDate.ToShortDateString()</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="5">No documents found.</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<div class="card mb-4">
+	<h5 class="card-header">Audit Instances Report</h5>
+	<div class="card-body">
+		<a asp-action="ExportAuditsToCsv" class="btn btn-primary mb-3">Export Audits to CSV</a>
+		<div class="table-responsive text-nowrap">
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Type</th>
+						<th>Status</th>
+						<th>Score</th>
+						<th>Audit Date</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (Model.AuditInstances.Any())
+					{
+						@foreach (var audit in Model.AuditInstances)
+						{
+							<tr>
+								<td>@audit.AuditInstanceId</td>
+								<td>@audit.JenisForm?.Name</td>
+								<td>@audit.Status</td>
+								<td>@audit.PercentageScore%</td>
+								<td>@audit.AuditDate.ToShortDateString()</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="5">No audit instances found.</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+@* Add more sections for Corrective Actions, Users (for SuperAdmin), etc. *@
