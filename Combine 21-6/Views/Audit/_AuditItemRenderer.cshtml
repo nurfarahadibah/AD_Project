@@ -1,0 +1,195 @@
+@model AspnetCoreMvcFull.Models.FormItem
+@using AspnetCoreMvcFull.Models;
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    int? loopIndex = ViewData["LoopIndex"] as int?;
+    Dictionary<string, string> existingResponses = ViewData["ExistingResponses"] as Dictionary<string, string>;
+
+    string inputName = Model.ItemId.ToString();
+    if (loopIndex.HasValue)
+    {
+        inputName = $"{Model.ItemId}_loop_{loopIndex.Value}";
+    }
+
+    // For multi-select checkboxes, existingValue might be a single string if only one was selected previously,
+    // or if the backend stores multiple selections as a delimited string (e.g., "Option1,Option3").
+    // We'll treat existingValue as a string that might contain multiple selected option values,
+    // separated by commas, or just a single value.
+    string existingRawValue = existingResponses != null && existingResponses.ContainsKey(inputName)
+        ? existingResponses[inputName] : "";
+
+    // Split existingRawValue into a list of selected options for checking
+    HashSet<string> existingSelectedOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    if (!string.IsNullOrEmpty(existingRawValue))
+    {
+        // Assuming existing values might be stored as comma-separated or similar for multiple selections
+        // If your backend always stores only one value for checkbox type, adjust this.
+        // For simple single checkboxes (true/false) from previous turns, existingValue = "true".
+        // For multi-select, if it stored "Option1,Option3", then split.
+        // If it stores only one option at a time, this will still work.
+        foreach (var val in existingRawValue.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            existingSelectedOptions.Add(val.Trim());
+        }
+    }
+
+    string requiredAttribute = Model.IsRequired ? "required" : "";
+}
+
+<div class="form-group mb-3">
+    <label for="@inputName" class="form-label">
+        @Model.Question
+        @if (Model.MaxScore.HasValue && Model.MaxScore.Value > 0)
+        {
+            <span class="text-muted ms-2">(Max Score: @Model.MaxScore)</span>
+        }
+        @if (Model.IsRequired)
+        {
+            <span class="text-danger">*</span>
+        }
+    </label>
+
+    @switch (Model.ItemType)
+    {
+        case ItemType.Text:
+            <input type="text" id="@inputName" name="@inputName" class="form-control"
+                   value="@existingRawValue" @requiredAttribute
+                   data-max-score="@(Model.MaxScore ?? 0)" />
+            break;
+        case ItemType.Number:
+            <input type="number" id="@inputName" name="@inputName" class="form-control"
+                   value="@existingRawValue" @requiredAttribute
+                   data-max-score="@(Model.MaxScore ?? 0)" />
+            break;
+        case ItemType.Textarea:
+            <textarea id="@inputName" name="@inputName" class="form-control" rows="3"
+              @requiredAttribute data-max-score="@(Model.MaxScore ?? 0)">@existingRawValue</textarea>
+            break;
+        case ItemType.Checkbox:
+            List<string> checkboxOptions = new List<string>();
+            if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                try
+                {
+                    checkboxOptions = JsonSerializer.Deserialize<List<string>>(Model.OptionsJson) ?? new List<string>();
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"JsonException parsing OptionsJson for checkbox {Model.ItemId}: {ex.Message}");
+                    // Fallback to empty list if parsing fails
+                }
+            }
+
+            @if (checkboxOptions.Any())
+            {
+                // Render each option as a separate checkbox, all with the same `name`
+                // This allows for multiple selections for a single FormItem.
+                // The values submitted will be: "name=Option1&name=Option3" if both are checked.
+                // The backend will need to read Request.Form.GetValues(inputName) to get all checked.
+                foreach (var optionValue in checkboxOptions)
+                {
+                    var currentCheckboxId = $"{inputName}_{optionValue?.Replace(" ", "")}"; // Unique ID for each checkbox
+                                                                                            // Check if this specific option was previously selected
+                    bool isChecked = existingSelectedOptions.Contains(optionValue);
+
+                    <div class="form-check">
+                        <input type="checkbox" id="@currentCheckboxId" name="@inputName" class="form-check-input"
+                               value="@optionValue" @(isChecked ? "checked" : "")
+                               data-max-score="@(Model.MaxScore ?? 0)" @(Model.IsRequired ? "required" : "") />
+                        <label class="form-check-label" for="@currentCheckboxId">@optionValue</label>
+                    </div>
+                }
+                // If it's required and no options are initially selected, a hidden field for validation might be tricky.
+                // Client-side validation for multi-checkbox "at least one required" often needs custom JS.
+                // For now, the 'required' attribute on the first checkbox (if exists) or custom JS is implied.
+            }
+            else // Fallback to a single "Yes" checkbox if no options are defined
+            {
+                bool isChecked = existingRawValue != null && (existingRawValue.Equals("true", StringComparison.OrdinalIgnoreCase) || existingRawValue.Equals("on", StringComparison.OrdinalIgnoreCase));
+                <div class="form-check">
+                    <input type="checkbox" id="@inputName" name="@inputName" class="form-check-input"
+                           value="true" @(isChecked ? "checked" : "")
+                           data-max-score="@(Model.MaxScore ?? 0)" @requiredAttribute />
+                    <label class="form-check-label" for="@inputName">Yes</label>
+                </div>
+            }
+            break;
+        case ItemType.Radio:
+        case ItemType.Dropdown:
+            List<string> options = new List<string>();
+            if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                try
+                {
+                    options = JsonSerializer.Deserialize<List<string>>(Model.OptionsJson) ?? new List<string>();
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"JsonException in _AuditItemRenderer for ItemId {Model.ItemId}. OptionsJson: '{Model.OptionsJson}' Error: {ex.Message}");
+                    <div class="alert alert-danger">Error loading options for this item. Please contact support.</div>
+                }
+            }
+
+            if (options != null && options.Any())
+            {
+                if (Model.ItemType == ItemType.Dropdown)
+                {
+                    <select id="@inputName" name="@inputName" class="form-select" @requiredAttribute data-max-score="@(Model.MaxScore ?? 0)">
+                        <option value="">-- Select an Option --</option>
+                        @foreach (var optionValue in options)
+                        {
+                            <option value="@optionValue"
+                                    data-score="@(Model.MaxScore ?? 0)" @* Still assign MaxScore to option data-score if selected *@
+                                    @(existingRawValue == optionValue ? "selected" : "")>
+                                @optionValue
+                            </option>
+                        }
+                    </select>
+                }
+                else // Radio
+                {
+                    @foreach (var optionValue in options)
+                    {
+                        var radioId = $"{inputName}_{optionValue?.Replace(" ", "")}";
+                        <div class="form-check">
+                            <input type="radio" id="@radioId" name="@inputName" class="form-check-input"
+                                   value="@optionValue"
+                                   @(existingRawValue == optionValue ? "checked" : "") @requiredAttribute
+                                   data-score="@(Model.MaxScore ?? 0)" @* Still assign MaxScore to option data-score if selected *@
+                                   data-max-score="@(Model.MaxScore ?? 0)" />
+                            <label class="form-check-label" for="@radioId">@optionValue</label>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="alert alert-warning">No options defined for this item.</div>
+            }
+            break;
+        case ItemType.File:
+            <input type="file" id="@inputName" name="@inputName" class="form-control" @requiredAttribute />
+            @if (!string.IsNullOrWhiteSpace(existingRawValue))
+            {
+                <p class="mt-2">Existing file: <a href="@existingRawValue" target="_blank">View File</a></p>
+            }
+            break;
+        case ItemType.Signature:
+            <div class="border rounded p-3 text-center" style="min-height: 100px; background-color: #f9f9f9;">
+                <p class="text-muted">Signature Pad Placeholder</p>
+                @if (!string.IsNullOrWhiteSpace(existingRawValue))
+                {
+                    <p>Existing Signature: <a href="@existingRawValue" target="_blank">View Signature</a></p>
+                }
+            </div>
+            <input type="hidden" id="@inputName" name="@inputName" value="@existingRawValue" @requiredAttribute data-max-score="@(Model.MaxScore ?? 0)" />
+            break;
+        default:
+            <div class="alert alert-danger">Unsupported Item Type: @Model.ItemType</div>
+            break;
+    }
+
+    @Html.ValidationMessage(inputName, new { @class = "text-danger" })
+</div>

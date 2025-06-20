@@ -1,0 +1,230 @@
+@model AspnetCoreMvcFull.Models.ComplianceFolder
+@{
+    ViewData["Title"] = "Folder Details";
+}
+
+<div class="container mt-4">
+    <div class="row align-items-center mb-4 pb-3 border-bottom">
+        <div class="col-md-8">
+            <h3 class="display-5 text-primary mb-1">@Model.Name</h3>
+            <p class="lead text-muted mb-2">Compliance Type: <span class="badge bg-secondary">@Model.ComplianceCategory?.Name</span></p>
+            <p class="mb-1"><strong>Description:</strong> @(Model.Description ?? "No description provided.")</p>
+            <p class="mb-1"><strong>Created By:</strong> @Model.CreatedBy on @Model.CreatedDate.ToString("MMM dd,yyyy 'at' hh:mm tt")</p>
+            @if (Model.LastModifiedDate.HasValue)
+            {
+                <p class="mb-1">
+                    <strong>Last Modified By:</strong> @(Model.LastModifiedBy ?? "N/A") on @Model.LastModifiedDate.Value.ToString("MMM dd,yyyy 'at' hh:mm tt")
+                </p>
+            }
+            <p class="mb-0">
+                <strong>Status:</strong>
+                <span class="badge @(Model.Status == AspnetCoreMvcFull.Models.FolderStatus.Active ? "bg-success" : "bg-secondary")">
+                    @Model.Status.ToString()
+                </span>
+            </p>
+        </div>
+        <div class="col-md-4 text-end d-flex flex-column align-items-end justify-content-center">
+            <a href="@Url.Action("UploadDocument", new { folderId = Model.Id })" class="btn btn-primary mb-2 w-60">
+                <i class="ri-upload-cloud-line me-2"></i> Upload General Document
+            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="@Url.Action("EditFolder", new { id = Model.Id })" class="btn btn-info mb-2 w-60">
+                    <i class="ri-edit-line me-2"></i> Edit Folder
+                </a>
+            }
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-60">
+                <i class="ri-arrow-go-back-line me-2"></i> Back to Folders
+            </a>
+        </div>
+    </div>
+
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-dark">Required Documents Checklist</h5>
+                    <span class="badge bg-label-info text-dark rounded-pill px-3 py-2">
+                        @Model.RequiredDocuments.Count(rd => !rd.IsSubmitted) pending
+                    </span>
+                </div>
+                <ul class="list-group list-group-flush">
+                    @if (Model.RequiredDocuments != null && Model.RequiredDocuments.Any())
+                    {
+                        @foreach (var reqDoc in Model.RequiredDocuments.OrderByDescending(rd => rd.IsSubmitted).ThenBy(rd => rd.DocumentName))
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-start py-3">
+                                <div class="me-auto pe-3">
+                                    <h6 class="mb-1">
+                                        <i class="ri-@(reqDoc.IsSubmitted ? "checkbox-circle-fill text-success" : "error-warning-line text-warning") me-2"></i>
+                                        @reqDoc.DocumentName
+                                        @if (reqDoc.IsRequired)
+                                        {
+                                            <span class="badge bg-danger ms-2">Required</span>
+                                        }
+
+                                        @if (reqDoc.IsSubmitted)
+                                        {
+                                            <span class="badge bg-success ms-2"><i class="ri-check-line me-1"></i> Submitted</span>
+                                        }
+                                    </h6>
+                                    @if (!string.IsNullOrEmpty(reqDoc.Description))
+                                    {
+                                        <p class="text-muted small mb-1">@reqDoc.Description</p>
+                                    }
+                                    @if (reqDoc.IsSubmitted)
+                                    {
+                                        <div class="text-muted small mt-1">
+                                            <i class="ri-calendar-line me-1"></i> Submitted on: @reqDoc.SubmissionDate?.ToString("MMM dd,yyyy 'at' hh:mm tt")
+                                            <br />
+                                            <i class="ri-user-line me-1"></i> Submitted By: @(reqDoc.SubmittedBy ?? "N/A")
+                                        </div>
+                                    }
+                                </div>
+                                <div class="d-flex flex-column align-items-end justify-content-center">
+                                    <a href="@Url.Action("UploadDocument", new { folderId = Model.Id, requiredDocId = reqDoc.Id })" class="btn btn-outline-primary btn-sm mb-2 w-100"
+                                       title="Upload document for this requirement">
+                                        <i class="ri-upload-cloud-line me-1"></i> Upload
+                                    </a>
+
+                                    @if (reqDoc.Documents != null && reqDoc.Documents.Any())
+                                    {
+                                        <button class="btn btn-sm btn-outline-info w-100" type="button" data-bs-toggle="collapse" data-bs-target="#associatedDocs_@reqDoc.Id" aria-expanded="false" aria-controls="associatedDocs_@reqDoc.Id">
+                                            <i class="ri-folder-open-line me-1"></i> @reqDoc.Documents.Count() Associated
+                                        </button>
+                                    }
+                                </div>
+                            </li>
+                            @if (reqDoc.Documents != null && reqDoc.Documents.Any())
+                            {
+                                <li class="list-group-item bg-white border-top-0 pt-0 pb-3">
+                                    <div class="collapse" id="associatedDocs_@reqDoc.Id">
+                                        <small class="text-muted d-block mb-2">Associated Documents:</small>
+                                        <ul class="list-unstyled mb-0 mt-1">
+                                            @foreach (var associatedDoc in reqDoc.Documents.OrderByDescending(d => d.UploadDate))
+                                            {
+                                                <li class="d-flex align-items-center mb-2 p-2 border rounded bg-white">
+                                                    <i class="ri-file-text-line text-secondary me-2"></i>
+                                                    <span class="flex-grow-1 text-truncate">@associatedDoc.FileName</span>
+                                                    <a href="@Url.Action("DownloadDocument", new { id = associatedDoc.Id })" class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="tooltip" title="Download this document">
+                                                        <i class="ri-download-line"></i>
+                                                    </a>
+                                                    <a href="#" class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" data-document-id="@associatedDoc.Id" data-document-name="@associatedDoc.FileName" title="Delete this document">
+                                                        <i class="ri-delete-bin-line"></i>
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </li>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-muted text-center py-4">
+                            <i class="ri-information-line me-2"></i> No specific required documents for this folder.
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0 text-dark">Uploaded Documents</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Documents != null && Model.Documents.Any())
+            {
+                <div class="table-responsive mt-3 ">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>File Name</th>
+                                <th>Description</th>
+                                <th>Uploaded By</th>
+                                <th>Upload Date</th>
+                                <th>Size</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in Model.Documents.OrderByDescending(d => d.UploadDate))
+                            {
+                                <tr>
+                                    <td><i class="ri-file-line me-2 text-primary"></i> @doc.FileName</td>
+                                    <td>@(doc.Description ?? "N/A")</td>
+                                    <td>@doc.UploadedBy</td>
+                                    <td>@doc.UploadDate.ToString("MMM dd,yyyy")</td>
+                                    <td>@(Math.Round((double)doc.FileSize / 1024 / 1024, 2)) MB</td>
+                                    <td>
+                                        <a href="@Url.Action("DownloadDocument", new { id = doc.Id })" class="btn btn-sm btn-icon" data-bs-toggle="tooltip" title="Download">
+                                            <i class="ri-download-line"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-icon text-danger" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" data-document-id="@doc.Id" data-document-name="@doc.FileName" title="Delete this document">
+                                            <i class="ri-delete-bin-line"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center py-3">No documents have been uploaded to this folder yet. <a href="@Url.Action("UploadDocument", new { folderId = Model.Id })" class="text-decoration-none">Upload one now!</a></p>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteDocumentModal" tabindex="-1" aria-labelledby="deleteDocumentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteDocumentModalLabel">Confirm Document Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the document "<strong id="documentFileName"></strong>"? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteDocumentForm" method="post" action="@Url.Action("DeleteDocument")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="documentIdToDelete" />
+                    <input type="hidden" name="folderId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(function () {
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Handle delete modal data population
+            var deleteDocumentModal = document.getElementById('deleteDocumentModal');
+            deleteDocumentModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; // Button that triggered the modal
+                var documentId = button.getAttribute('data-document-id');
+                var documentName = button.getAttribute('data-document-name');
+
+                var modalBodyFileName = deleteDocumentModal.querySelector('#documentFileName');
+                var modalFormInputId = deleteDocumentModal.querySelector('#documentIdToDelete');
+
+                modalBodyFileName.textContent = documentName;
+                modalFormInputId.value = documentId;
+            });
+        });
+    </script>
+}

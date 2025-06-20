@@ -1,0 +1,71 @@
+@model AspnetCoreMvcFull.Models.ViewModels.UploadDocumentViewModel
+@{
+    ViewData["Title"] = "Upload Document";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="py-3 mb-4">
+        <span class="text-muted fw-light">Document Repository /</span> Upload Document
+    </h4>
+
+    <div class="row">
+        <div class="col-xl">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="ri-upload-cloud-line me-2"></i> Upload Document for Folder: <strong>@Model.ComplianceFolderName</strong>
+                    </h5>
+                    <small class="text-muted float-end">File Upload</small>
+                </div>
+                <div class="card-body">
+
+                    @if (Model.IsRequiredDocumentUpload)
+                    {
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <span class="tf-icons ri-information-line me-2"></span>
+                            <div>
+                                You are uploading a document for the required item: <strong>@Model.RequiredDocumentName</strong>
+                            </div>
+                        </div>
+                    }
+
+                    <form asp-action="UploadDocument" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <input type="hidden" asp-for="ComplianceFolderId" />
+                        <input type="hidden" asp-for="RequiredDocumentId" />
+
+                        <div class="mb-3">
+                            <label asp-for="File" class="form-label">
+                                <i class="ri-file-line me-1"></i> Select File <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" asp-for="File" class="form-control" />
+                            <span asp-validation-for="File" class="text-danger mt-1 d-block"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">
+                                <i class="ri-article-line me-1"></i> Document Description (Optional)
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Enter a brief description for this document (e.g., version, content summary)"></textarea>
+                            <span asp-validation-for="Description" class="text-danger mt-1 d-block"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="FolderDetails" asp-route-id="@Model.ComplianceFolderId" class="btn btn-label-secondary">
+                                <i class="ri-arrow-go-back-line me-1"></i> Back to Folder Details
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ri-upload-cloud-line me-1"></i> Upload Document
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <partial name="_ValidationScriptsPartial" />
+}

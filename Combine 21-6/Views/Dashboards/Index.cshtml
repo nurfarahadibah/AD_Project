@@ -1,0 +1,691 @@
+@model AspnetCoreMvcFull.Models.ViewModels.DashboardViewModel
+@using Microsoft.AspNetCore.Identity 
+
+@{
+	ViewData["Title"] = "Dashboard";
+	// Define a list of colors for charts for better visual appeal
+	var chartColors = new List<string>
+	{
+		"rgba(75, 192, 192, 0.8)", // Greenish
+		"rgba(54, 162, 235, 0.8)", // Blue
+		"rgba(255, 159, 64, 0.8)", // Orange
+		"rgba(255, 99, 132, 0.8)", // Red
+		"rgba(153, 102, 255, 0.8)",// Purple
+		"rgba(201, 203, 207, 0.8)",// Grey
+		"rgba(255, 205, 86, 0.8)"  // Yellow
+	};
+	var chartBorderColors = new List<string>
+	{
+		"rgba(75, 192, 192, 1)",
+		"rgba(54, 162, 235, 1)",
+		"rgba(255, 159, 64, 1)",
+		"rgba(255, 99, 132, 1)",
+		"rgba(153, 102, 255, 1)",
+		"rgba(201, 203, 207, 1)",
+		"rgba(255, 205, 86, 1)"
+	};
+}
+
+@* Add Remixicon for icons. You might need to add this to your _Layout.cshtml or directly here. *@
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
+<style>
+	/* Custom styles for enhanced aesthetics */
+	.card {
+		border-radius: 0.75rem; /* Slightly more rounded corners */
+		overflow: hidden; /* Ensures content respects border-radius */
+	}
+
+	.card-header {
+		border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+		background-color: #f8f9fa; /* Light background for headers */
+		padding: 1rem 1.5rem; /* Ample padding */
+	}
+
+	.card-body {
+		padding: 1.5rem; /* Consistent padding */
+	}
+
+	.icon-large {
+		font-size: 3rem; /* Larger icons for KPIs */
+		line-height: 1; /* Adjust line-height for better alignment */
+	}
+
+	.progress {
+		height: 0.5rem; /* Thinner progress bars */
+		border-radius: 0.25rem;
+	}
+
+	.list-group-item.d-flex {
+		font-size: 0.95rem; /* Slightly smaller text for lists */
+	}
+
+	/* Gradient borders for KPI cards for a modern touch */
+	.border-primary-gradient {
+		border-color: transparent !important;
+		border-image: linear-gradient(to right, #007bff, #6610f2) 1;
+		border-width: 2px;
+		border-style: solid;
+	}
+
+	.border-info-gradient {
+		border-color: transparent !important;
+		border-image: linear-gradient(to right, #17a2b8, #20c997) 1;
+		border-width: 2px;
+		border-style: solid;
+	}
+
+	.border-success-gradient {
+		border-color: transparent !important;
+		border-image: linear-gradient(to right, #28a745, #20c997) 1;
+		border-width: 2px;
+		border-style: solid;
+	}
+
+	.border-warning-gradient {
+		border-color: transparent !important;
+		border-image: linear-gradient(to right, #ffc107, #fd7e14) 1;
+		border-width: 2px;
+		border-style: solid;
+	}
+</style>
+
+<h2 class="mb-4">
+	<i class="ri-dashboard-line me-2"></i> System Overview
+</h2>
+
+<div class="row mb-4">
+	<div class="col-12">
+		<div class="alert alert-info shadow-sm border-0 rounded-3" role="alert">
+			<h4 class="alert-heading">Welcome, @ViewBag.Username!</h4>
+			<p>You are logged in as <strong>@ViewBag.Role</strong>.</p>
+			<p class="mb-0">This dashboard provides a snapshot of your system's activities.</p>
+		</div>
+	</div>
+</div>
+
+@* KPI Section (Audit & Filing related) - Visible for User, Manager, Admin ONLY *@
+@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+{
+	<div class="row g-4 mb-5">
+		<div class="col-lg-3 col-md-6 col-sm-12">
+			<div class="card h-100 shadow border-primary-gradient">
+				<div class="card-body d-flex align-items-center">
+					<i class="ri-folder-open-line icon-large text-primary me-3"></i>
+					<div>
+						<h6 class="card-subtitle text-muted text-uppercase mb-1">Total Folders</h6>
+						<h4 class="card-title mb-0">@Model.TotalComplianceFolders</h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3 col-md-6 col-sm-12">
+			<div class="card h-100 shadow border-info-gradient">
+				<div class="card-body d-flex align-items-center">
+					<i class="ri-file-text-line icon-large text-info me-3"></i>
+					<div>
+						<h6 class="card-subtitle text-muted text-uppercase mb-1">Total Documents</h6>
+						<h4 class="card-title mb-0">@Model.TotalDocuments</h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3 col-md-6 col-sm-12">
+			<div class="card h-100 shadow border-success-gradient">
+				<div class="card-body d-flex align-items-center">
+					<i class="ri-clipboard-line icon-large text-success me-3"></i>
+					<div>
+						<h6 class="card-subtitle text-muted text-uppercase mb-1">Total Audits</h6>
+						<h4 class="card-title mb-0">@Model.TotalAuditInstances</h4>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3 col-md-6 col-sm-12">
+			<div class="card h-100 shadow border-warning-gradient">
+				<div class="card-body d-flex align-items-center">
+					<i class="ri-alert-line icon-large text-warning me-3"></i>
+					<div>
+						<h6 class="card-subtitle text-muted text-uppercase mb-1">Corrective Actions</h6>
+						<h4 class="card-title mb-0">@Model.TotalCorrectiveActions</h4>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+
+<div class="row g-4 mb-5">
+	@* Compliance Folders Card (Filing related) - Visible for User, Manager, Admin ONLY *@
+	@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+	{
+		<div class="col-lg-4 col-md-6">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0"><i class="ri-folder-line me-2"></i> Compliance Folders</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-2">Total: <strong class="float-end">@Model.TotalComplianceFolders</strong></p>
+					<p class="mb-2 text-success">Active: <strong class="float-end">@Model.ActiveComplianceFolders</strong></p>
+					<p class="mb-2 text-muted">Archived: <strong class="float-end">@Model.ArchivedComplianceFolders</strong></p>
+				</div>
+			</div>
+		</div>
+	}
+
+	@* Form Templates Card (Dynamic Form Builder related) - Visible for Admin ONLY *@
+	@if (User.IsInRole("Admin"))
+	{
+		<div class="col-lg-4 col-md-6 order-lg-2">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0"><i class="ri-file-line me-2"></i> Form Templates</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-2">Total Templates: <strong class="float-end">@Model.TotalFormTemplates</strong></p>
+					<p class="mb-2 text-success">Published: <strong class="float-end">@Model.PublishedFormTemplates</strong></p>
+					<p class="mb-0 text-muted">Draft: <strong class="float-end">@Model.DraftFormTemplates</strong></p>
+				</div>
+			</div>
+		</div>
+	}
+
+	@* Required Documents Card (Filing related) - Visible for User, Manager, Admin ONLY *@
+	@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+	{
+		<div class="col-lg-4 col-md-6 order-lg-3">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0"><i class="ri-file-chart-line me-2"></i> Required Documents</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-2">Total Requirements: <strong class="float-end">@Model.TotalRequiredDocuments</strong></p>
+					<p class="mb-2 text-success">Submitted: <strong class="float-end">@Model.SubmittedRequiredDocuments</strong></p>
+					@{
+						double submittedPercentage = Model.TotalRequiredDocuments > 0 ? (double)Model.SubmittedRequiredDocuments / Model.TotalRequiredDocuments * 100 : 0;
+					}
+					<div class="progress mb-2">
+						<div class="progress-bar bg-success" role="progressbar" style="width: @(submittedPercentage)%;" aria-valuenow="@submittedPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+					</div>
+					<p class="mb-2 text-danger">Outstanding: <strong class="float-end">@Model.OutstandingRequiredDocuments</strong></p>
+				</div>
+			</div>
+		</div>
+	}
+</div>
+
+
+<div class="row g-4 mb-5">
+	@* Audit Instances Card (Audit related) - Visible for User, Manager, Admin ONLY *@
+	@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+	{
+		<div class="col-lg-6 col-md-12">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0"><i class="ri-clipboard-check-line me-2"></i> Audit Instances</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-2">Total Audits: <strong class="float-end">@Model.TotalAuditInstances</strong></p>
+					<p class="mb-2">Draft: <strong class="float-end">@Model.DraftAudits</strong></p>
+					<p class="mb-2 text-success">Completed: <strong class="float-end">@Model.CompletedAudits</strong></p>
+					@{
+						double completedAuditPercentage = Model.TotalAuditInstances > 0 ? (double)Model.CompletedAudits / Model.TotalAuditInstances * 100 : 0;
+					}
+					<div class="progress mb-2">
+						<div class="progress-bar bg-success" role="progressbar" style="width: @(completedAuditPercentage)%;" aria-valuenow="@completedAuditPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+					</div>
+					<p class="mb-2 text-warning">Needs Corrective Action: <strong class="float-end">@Model.NeedsCorrectiveActionAudits</strong></p>
+					<p class="mb-2 text-info">Needs Follow-Up: <strong class="float-end">@Model.NeedsFollowUpAudits</strong></p>
+					<p class="mb-0">Average Score (Completed): <strong class="float-end text-primary">@Model.AverageAuditScore.ToString("F2")%</strong></p>
+				</div>
+			</div>
+		</div>
+	}
+
+	@* Corrective Actions Card (Audit related) - Visible for User, Manager, Admin ONLY *@
+	@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+	{
+		<div class="col-lg-6 col-md-12">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0"><i class="ri-error-warning-line me-2"></i> Corrective Actions</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-2">Total: <strong class="float-end">@Model.TotalCorrectiveActions</strong></p>
+					<p class="mb-2 text-warning">Pending: <strong class="float-end">@Model.PendingCorrectiveActions</strong></p>
+					<p class="mb-2 text-primary">In Progress: <strong class="float-end">@Model.InProgressCorrectiveActions</strong></p>
+					<p class="mb-2 text-success">Completed: <strong class="float-end">@Model.CompletedCorrectiveActions</strong></p>
+					<p class="mb-0 text-danger">Overdue: <strong class="float-end">@Model.OverdueCorrectiveActions</strong></p>
+				</div>
+			</div>
+		</div>
+	}
+</div>
+
+
+@* Auditor Performance Card (Audit related) - Visible for User, Manager, Admin ONLY *@
+@if (User.IsInRole("User") || User.IsInRole("Manager"))
+{
+	<div class="row g-4 mb-5">
+		<div class="col-lg-12">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title m-0 me-2">
+						<i class="ri-user-line me-2"></i> Auditor Performance:
+						<span class="text-primary">@Model.AuditorPerformance.CurrentAuditorName</span>
+					</h5>
+				</div>
+				<div class="card-body">
+					<div class="row text-center">
+						<div class="col-md-4 mb-3 mb-md-0">
+							<h4 class="mb-0 text-success">@Model.AuditorPerformance.TotalAuditsDone</h4>
+							<small class="text-muted">Completed Audits</small>
+						</div>
+						<div class="col-md-4 mb-3 mb-md-0">
+							<h4 class="mb-0 text-warning">@Model.AuditorPerformance.OverdueAudits</h4>
+							<small class="text-muted">Overdue Actions (Your Audits)</small>
+						</div>
+						<div class="col-md-4">
+							<h4 class="mb-0 text-danger">@Model.AuditorPerformance.RejectedAudits</h4>
+							<small class="text-muted">Rejected Audits</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+
+<div class="row g-4 mb-5">
+	@* Audits by Form Type Chart (Audit related) - Visible for User, Manager, Admin ONLY *@
+	@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+	{
+		<div class="col-lg-6 col-md-12">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">Audits by Form Type</h5>
+				</div>
+				<div class="card-body">
+					<canvas id="auditsByFormTypeChart"></canvas>
+				</div>
+				@if (Model.AuditsByFormType != null && Model.AuditsByFormType.Any())
+				{
+					<div class="card-footer">
+						<small class="text-muted">Summary:</small>
+						<ul class="list-group list-group-flush mt-2">
+							@foreach (var item in Model.AuditsByFormType)
+							{
+								<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0 border-0">
+									@item.Key
+									<span class="badge bg-primary rounded-pill">@item.Value</span>
+								</li>
+							}
+						</ul>
+					</div>
+				}
+			</div>
+		</div>
+	}
+
+	@* Corrective Actions by Status Chart (Audit related) - Visible for User, Manager, Admin ONLY *@
+	@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+	{
+		<div class="col-lg-6 col-md-12">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0">Corrective Actions by Status</h5>
+				</div>
+				<div class="card-body">
+					<canvas id="correctiveActionsByStatusChart"></canvas>
+				</div>
+				@if (Model.CorrectiveActionsByStatus != null && Model.CorrectiveActionsByStatus.Any())
+				{
+					<div class="card-footer">
+						<small class="text-muted">Summary:</small>
+						<ul class="list-group list-group-flush mt-2">
+							@foreach (var item in Model.CorrectiveActionsByStatus)
+							{
+								<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0 border-0">
+									@item.Key
+									<span class="badge bg-info rounded-pill">@item.Value</span>
+								</li>
+							}
+						</ul>
+					</div>
+				}
+			</div>
+		</div>
+	}
+
+	@* Compliance Categories Overview Chart (Manage Compliance related) - Visible for Admin ONLY *@
+	@if (User.IsInRole("Admin"))
+	{
+		@if (Model.ComplianceCategoryCounts != null && Model.ComplianceCategoryCounts.Any())
+		{
+			<div class="col-lg-6 col-md-12">
+				<div class="card shadow-sm h-100">
+					<div class="card-header">
+						<h5 class="card-title mb-0">Compliance Categories Overview</h5>
+					</div>
+					<div class="card-body">
+						<canvas id="complianceCategoryChart"></canvas>
+					</div>
+					<div class="card-footer">
+						<small class="text-muted">Summary:</small>
+						<ul class="list-group list-group-flush mt-2">
+							@foreach (var item in Model.ComplianceCategoryCounts)
+							{
+								<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0 border-0">
+									@item.Key
+									<span class="badge bg-secondary rounded-pill">@item.Value Folders</span>
+								</li>
+							}
+						</ul>
+					</div>
+				</div>
+			</div>
+		}
+	}
+
+	@* Non-Compliance by Audit Type Chart (Audit related) - Visible for User, Manager, Admin ONLY *@
+	@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+	{
+		@if (Model.NonComplianceByAuditType != null && Model.NonComplianceByAuditType.Any())
+		{
+			<div class="col-lg-6 col-md-12">
+				<div class="card shadow-sm h-100">
+					<div class="card-header">
+						<h5 class="card-title mb-0">Non-Compliance by Audit Type</h5>
+					</div>
+					<div class="card-body">
+						<canvas id="nonComplianceByAuditTypeChart"></canvas>
+					</div>
+					<div class="card-footer">
+						<small class="text-muted">Summary:</small>
+						<ul class="list-group list-group-flush mt-2">
+							@foreach (var item in Model.NonComplianceByAuditType)
+							{
+								<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-0 border-0">
+									@item.Key
+									<span class="badge bg-warning rounded-pill">@item.Value</span>
+								</li>
+							}
+						</ul>
+					</div>
+				</div>
+			</div>
+		}
+	}
+</div>
+
+
+<div class="row g-4 mb-5">
+	@* User Management Card (User list/manage role and permission related) - Visible for Admin and SuperAdmin *@
+	@if (User.IsInRole("SuperAdmin"))
+	{
+		<div class="col-lg-4 col-md-6">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0"><i class="ri-group-line me-2"></i> User Management</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-2">Total Users: <strong class="float-end">@Model.TotalUsers</strong></p>
+					<p class="mb-0 text-success">Active Users: <strong class="float-end">@Model.ActiveUsers</strong></p>
+				</div>
+			</div>
+		</div>
+	}
+
+	@* Tenant Overview Card - Visible for Admin and SuperAdmin *@
+	@if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+	{
+		<div class="col-lg-4 col-md-6">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0"><i class="ri-building-line me-2"></i> Tenant Overview</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-2">Total Tenants: <strong class="float-end">@Model.TotalTenants</strong></p>
+					<p class="mb-0 text-success">Active Tenants: <strong class="float-end">@Model.ActiveTenants</strong></p>
+				</div>
+			</div>
+		</div>
+	}
+
+	@* Form Templates (bottom row, Dynamic Form Builder related) - Visible for Admin ONLY *@
+	@if (User.IsInRole("Admin"))
+	{
+		<div class="col-lg-4 col-md-6">
+			<div class="card shadow-sm h-100">
+				<div class="card-header">
+					<h5 class="card-title mb-0"><i class="ri-file-line me-2"></i> Form Templates</h5>
+				</div>
+				<div class="card-body">
+					<p class="mb-2">Total Templates: <strong class="float-end">@Model.TotalFormTemplates</strong></p>
+					<p class="mb-2 text-success">Published: <strong class="float-end">@Model.PublishedFormTemplates</strong></p>
+					<p class="mb-0 text-muted">Draft: <strong class="float-end">@Model.DraftFormTemplates</strong></p>
+				</div>
+			</div>
+		</div>
+	}
+</div>
+
+@section PageScripts {
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>
+		// Define colors (ensure these match your CSS for consistency if you use custom CSS)
+		const chartColors = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(chartColors));
+		const chartBorderColors = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(chartBorderColors));
+
+		// Data for Audits by Form Type Chart
+		var auditsByFormTypeLabels = @Html.Raw(Model.AuditsByFormType != null && Model.AuditsByFormType.Any() ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.AuditsByFormType.Keys.ToList()) : "[]");
+		var auditsByFormTypeData = @Html.Raw(Model.AuditsByFormType != null && Model.AuditsByFormType.Any() ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.AuditsByFormType.Values.ToList()) : "[]");
+
+		// Data for Corrective Actions by Status Chart
+		var caByStatusLabels = @Html.Raw(Model.CorrectiveActionsByStatus != null && Model.CorrectiveActionsByStatus.Any() ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.CorrectiveActionsByStatus.Keys.ToList()) : "[]");
+		var caByStatusData = @Html.Raw(Model.CorrectiveActionsByStatus != null && Model.CorrectiveActionsByStatus.Any() ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.CorrectiveActionsByStatus.Values.ToList()) : "[]");
+
+		// Data for Compliance Category Chart
+		var complianceCategoryLabels = @Html.Raw(Model.ComplianceCategoryCounts != null && Model.ComplianceCategoryCounts.Any() ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.ComplianceCategoryCounts.Keys.ToList()) : "[]");
+		var complianceCategoryData = @Html.Raw(Model.ComplianceCategoryCounts != null && Model.ComplianceCategoryCounts.Any() ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.ComplianceCategoryCounts.Values.ToList()) : "[]");
+
+		// Data for Non-Compliance by Audit Type Chart
+		var nonComplianceByAuditTypeLabels = @Html.Raw(Model.NonComplianceByAuditType != null && Model.NonComplianceByAuditType.Any() ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.NonComplianceByAuditType.Keys.ToList()) : "[]");
+		var nonComplianceByAuditTypeData = @Html.Raw(Model.NonComplianceByAuditType != null && Model.NonComplianceByAuditType.Any() ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.NonComplianceByAuditType.Values.ToList()) : "[]");
+
+
+		// Function to get a subset of colors for the chart
+		function getChartColors(count) {
+			let colors = [];
+			for (let i = 0; i < count; i++) {
+				colors.push(chartColors[i % chartColors.length]);
+			}
+			return colors;
+		}
+		function getChartBorderColors(count) {
+			let colors = [];
+			for (let i = 0; i < count; i++) {
+				colors.push(chartBorderColors[i % chartBorderColors.length]);
+			}
+			return colors;
+		}
+
+		// Chart.js for Audits by Form Type
+		// Only initialize if the element exists AND the user is not a SuperAdmin
+		if (document.getElementById('auditsByFormTypeChart') && auditsByFormTypeLabels && auditsByFormTypeData && (!@(User.IsInRole("SuperAdmin").ToString().ToLower()))) {
+			var ctx1 = document.getElementById('auditsByFormTypeChart').getContext('2d');
+			new Chart(ctx1, {
+				type: 'bar',
+				data: {
+					labels: auditsByFormTypeLabels,
+					datasets: [{
+						label: 'Number of Audits',
+						data: auditsByFormTypeData,
+						backgroundColor: getChartColors(auditsByFormTypeLabels.length),
+						borderColor: getChartBorderColors(auditsByFormTypeLabels.length),
+						borderWidth: 1
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false, // Allow charts to resize more freely
+					plugins: {
+						legend: {
+							display: false // No need for legend on single dataset bars
+						},
+						title: {
+							display: true,
+							text: 'Audit Count by Form Type',
+							font: {
+								size: 16
+							}
+						}
+					},
+					scales: {
+						y: {
+							beginAtZero: true,
+							title: {
+								display: true,
+								text: 'Count'
+							}
+						},
+						x: {
+							title: {
+								display: true,
+								text: 'Form Type'
+							}
+						}
+					}
+				}
+			});
+		}
+
+		// Chart.js for Corrective Actions by Status
+		// Only initialize if the element exists AND the user is not a SuperAdmin
+		if (document.getElementById('correctiveActionsByStatusChart') && caByStatusLabels && caByStatusData && (!@(User.IsInRole("SuperAdmin").ToString().ToLower()))) {
+			var ctx2 = document.getElementById('correctiveActionsByStatusChart').getContext('2d');
+			new Chart(ctx2, {
+				type: 'doughnut',
+				data: {
+					labels: caByStatusLabels,
+					datasets: [{
+						label: 'Corrective Actions',
+						data: caByStatusData,
+						backgroundColor: getChartColors(caByStatusLabels.length),
+						borderColor: getChartBorderColors(caByStatusLabels.length),
+						borderWidth: 1
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: {
+							position: 'right', // Place legend on the right
+							labels: {
+								boxWidth: 20
+							}
+						},
+						title: {
+							display: true,
+							text: 'Corrective Actions by Status',
+							font: {
+								size: 16
+							}
+						}
+					}
+				}
+			});
+		}
+
+		// Chart.js for Compliance Category Chart
+		// Only initialize if the element exists AND the user is an Admin
+		if (document.getElementById('complianceCategoryChart') && complianceCategoryLabels && complianceCategoryData && (@(User.IsInRole("Admin").ToString().ToLower()))) {
+			var ctx3 = document.getElementById('complianceCategoryChart').getContext('2d');
+			new Chart(ctx3, {
+				type: 'pie',
+				data: {
+					labels: complianceCategoryLabels,
+					datasets: [{
+						label: 'Folders per Category',
+						data: complianceCategoryData,
+						backgroundColor: getChartColors(complianceCategoryLabels.length),
+						borderColor: getChartBorderColors(complianceCategoryLabels.length),
+						borderWidth: 1
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: {
+							position: 'right',
+							labels: {
+								boxWidth: 20
+							}
+						},
+						title: {
+							display: true,
+							text: 'Compliance Folders by Category',
+							font: {
+								size: 16
+							}
+						}
+					}
+				}
+			});
+		}
+
+		// Chart.js for Non-Compliance by Audit Type
+		// Only initialize if the element exists AND the user is not a SuperAdmin
+		if (document.getElementById('nonComplianceByAuditTypeChart') && nonComplianceByAuditTypeLabels && nonComplianceByAuditTypeData && (!@(User.IsInRole("SuperAdmin").ToString().ToLower()))) {
+			var ctx5 = document.getElementById('nonComplianceByAuditTypeChart').getContext('2d');
+			new Chart(ctx5, {
+				type: 'bar',
+				data: {
+					labels: nonComplianceByAuditTypeLabels,
+					datasets: [{
+						label: 'Non-Compliance Count',
+						data: nonComplianceByAuditTypeData,
+						backgroundColor: getChartColors(nonComplianceByAuditTypeLabels.length),
+						borderColor: getChartBorderColors(nonComplianceByAuditTypeLabels.length),
+						borderWidth: 1
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: {
+							display: false
+						},
+						title: {
+							display: true,
+							text: 'Non-Compliance by Audit Type',
+							font: {
+								size: 16
+							}
+						}
+					},
+					scales: {
+						y: {
+							beginAtZero: true,
+							title: {
+								display: true,
+								text: 'Count'
+							}
+						},
+						x: {
+							title: {
+								display: true,
+								text: 'Audit Type'
+							}
+						}
+					}
+				}
+			});
+		}
+	</script>
+}

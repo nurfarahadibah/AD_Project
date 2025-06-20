@@ -1,0 +1,40 @@
+@using AspnetCoreMvcFull.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@{
+	// Determine if external logins are configured to conditionally display the link.
+	var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+}
+
+<ul class="nav nav-pills flex-column nav-tabs-vertical">
+	<li class="nav-item">
+		<a class="nav-link @ManageNavPages.IndexNavClass(ViewContext) rounded-md py-2 px-3 mb-1" id="profile" asp-page="./Index">
+			<i class="ri-user-line me-2"></i> Profile
+		</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link @ManageNavPages.EmailNavClass(ViewContext) rounded-md py-2 px-3 mb-1" id="email" asp-page="./Email">
+			<i class="ri-mail-line me-2"></i> Email
+		</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext) rounded-md py-2 px-3 mb-1" id="change-password" asp-page="./ChangePassword">
+			<i class="ri-lock-line me-2"></i> Password
+		</a>
+	</li>
+	@if (hasExternalLogins)
+	{
+		<li id="external-logins" class="nav-item">
+			<a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext) rounded-md py-2 px-3 mb-1" asp-page="./ExternalLogins">
+				<i class="ri-global-line me-2"></i> External logins
+			</a>
+		</li>
+	}
+	
+	<li class="nav-item">
+		<a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext) rounded-md py-2 px-3 mb-1" id="personal-data" asp-page="./PersonalData">
+			<i class="ri-folder-info-line me-2"></i> Personal data
+		</a>
+	</li>
+</ul>
+
+
