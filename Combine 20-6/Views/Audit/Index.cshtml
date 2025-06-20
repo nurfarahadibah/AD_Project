@@ -102,7 +102,7 @@
                                             else
                                             {
                                                 <li><a class="dropdown-item" asp-controller="Audit" asp-action="Details" asp-route-id="@item.AuditInstanceId">View Details</a></li>
-                                                <li><a class="dropdown-item" asp-controller="Audit" asp-action="DisplayForm" asp-route-id="@item.FormTypeId" asp-route-auditInstanceId="@item.AuditInstanceId">Edit (Fix Typos)</a></li>
+                                                <li><a class="dropdown-item" asp-controller="Audit" asp-action="DisplayForm" asp-route-id="@item.FormTypeId" asp-route-auditInstanceId="@item.AuditInstanceId">Edit</a></li>
 
                                                 @if (item.Status == AspnetCoreMvcFull.Models.AuditStatus.NeedsCorrectiveAction)
                                                 {

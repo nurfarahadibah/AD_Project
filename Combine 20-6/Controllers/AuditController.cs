@@ -267,7 +267,7 @@ namespace AspnetCoreMvcFull.Controllers
                   AuditInstance = auditInstance,
                   AuditResponse = newAuditResponse,
                   //FormItemId = item.ItemId, // Required: FormItemId
-                  CorrectiveActionNotes = null,
+                  CorrectiveActionNotes = string.Empty,
                   Status = CorrectiveActionStatus.Pending, // Corrected Enum usage
                   CreatedBy = User.Identity.Name,
                   CreatedDate = DateTime.Now,
@@ -312,7 +312,7 @@ namespace AspnetCoreMvcFull.Controllers
                 AuditInstance = auditInstance,
                 AuditResponse = newAuditResponse,
                 //FormItemId = item.ItemId, // Required: FormItemId
-                CorrectiveActionNotes = null,
+                CorrectiveActionNotes = string.Empty,
                 Status = CorrectiveActionStatus.Pending, // Corrected Enum usage
                 CreatedBy = User.Identity.Name,
                 CreatedDate = DateTime.Now,
