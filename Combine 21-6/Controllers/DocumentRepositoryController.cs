@@ -740,6 +740,7 @@ namespace AspnetCoreMvcFull.Controllers
     {
       // Global Query Filter ensures these categories are tenant-specific
       var categories = await _context.ComplianceCategories
+                                      .Where(c => c.Status == 1) // Filter for active categories (Status = 1)
                                       .OrderBy(c => c.Name)
                                       .ToListAsync();
       viewModel.ComplianceCategories = new SelectList(categories, "Id", "Name");

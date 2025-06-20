@@ -28,7 +28,7 @@
             @if (isAdmin)
             {
                 <a href="@Url.Action("CreateFolder")" class="btn btn-primary me-2">
-                    <i class="ri-folder-add-line"></i> Create Folder @* Changed from fas fa-folder-plus *@
+                    <i class="ri-folder-add-line"></i> Create Folder
                 </a>
             }
         </div>
@@ -46,7 +46,7 @@
                                 <p class="mb-0 text-muted">Total Folders</p>
                             </div>
                             <div class="align-self-center text-primary">
-                                <i class="ri-folder-line ri-3x"></i> @* Changed from fas fa-folder *@
+                                <i class="ri-folder-line ri-3x"></i>
                             </div>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
                                 <p class="mb-0 text-muted">Documents</p>
                             </div>
                             <div class="align-self-center text-success">
-                                <i class="ri-file-text-line ri-3x"></i> @* Changed from fas fa-file-alt *@
+                                <i class="ri-file-text-line ri-3x"></i>
                             </div>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                                 <p class="mb-0 text-muted">Pending</p>
                             </div>
                             <div class="align-self-center text-warning">
-                                <i class="ri-time-line ri-3x"></i> @* Changed from fas fa-clock *@
+                                <i class="ri-time-line ri-3x"></i>
                             </div>
                         </div>
                     </div>
@@ -91,7 +91,7 @@
                                 <p class="mb-0 text-muted">Compliance Rate</p>
                             </div>
                             <div class="align-self-center text-info">
-                                <i class="ri-bar-chart-line ri-3x"></i> @* Changed from fas fa-chart-bar *@
+                                <i class="ri-bar-chart-line ri-3x"></i>
                             </div>
                         </div>
                     </div>
@@ -106,7 +106,7 @@
                 <div class="@(isAdmin ? "col-md-5" : "col-md-8")">
                     <form method="get" id="filterForm">
                         <div class="input-group">
-                            <span class="input-group-text"><i class="ri-search-line"></i></span> @* Changed from fas fa-search *@
+                            <span class="input-group-text"><i class="ri-search-line"></i></span>
                             <input type="text" class="form-control" name="searchQuery" value="@ViewBag.SearchQuery" placeholder="Search folders and documents...">
                         </div>
                     </form>
@@ -152,7 +152,7 @@
                                 </select>
                             </div>
                             <div class="col-auto">
-                                <button type="submit" class="btn btn-primary btn-sm" id="applyBulkAction" disabled>Apply</button>
+                                <button type="button" class="btn btn-primary btn-sm" id="applyBulkAction" disabled data-bs-toggle="modal" data-bs-target="#confirmBulkActionModal">Apply</button>
                             </div>
                         </form>
                     </div>
@@ -254,19 +254,19 @@
                                 @if (isAdmin)
                                 {
                                     <a href="@Url.Action("FolderDetails", new { id = folder.Id })" class="btn btn-outline-primary btn-sm">
-                                        <i class="ri-eye-line"></i> View @* Changed from fas fa-eye *@
+                                        <i class="ri-eye-line"></i> View
                                     </a>
                                 }
                                 @if (User.IsInRole("Manager") || User.IsInRole("User"))
                                 {
                                     <a href="@Url.Action("FolderDetails", new { id = folder.Id })" class="btn btn-outline-primary btn-sm">
-                                        <i class="ri-upload-cloud-line"></i> Upload @* Changed from fas fa-eye to a more relevant icon for upload *@
+                                        <i class="ri-upload-cloud-line"></i> Upload
                                     </a>
                                 }
                                 @if (isAdmin)
                                 {
                                     <a href="@Url.Action("EditFolder", new { Id = folder.Id })" class="btn btn-outline-success btn-sm">
-                                        <i class="ri-edit-line"></i> Edit @* Changed from fas fa-edit *@
+                                        <i class="ri-edit-line"></i> Edit
                                     </a>
                                 }
 
@@ -283,7 +283,7 @@
                                             data-folder-name="@folder.Name"
                                             data-action-type="archive"
                                             title="Archive Folder">
-                                        <i class="ri-archive-line me-1"></i> <small>Archive</small> @* Changed from fas fa-archive *@
+                                        <i class="ri-archive-line me-1"></i> <small>Archive</small>
                                     </button>
                                 }
                                 else if (folder.Status == FolderStatus.Archived)
@@ -295,7 +295,7 @@
                                             data-folder-name="@folder.Name"
                                             data-action-type="activate"
                                             title="Activate Folder">
-                                        <i class="ri-refresh-line me-1"></i> <small>Activate</small> @* Changed from fas fa-redo *@
+                                        <i class="ri-refresh-line me-1"></i> <small>Activate</small>
                                     </button>
                                 }
                             }
@@ -311,7 +311,7 @@
     @if (!Model.Any(folder => isAdmin || folder.Status == FolderStatus.Active))
     {
         <div class="text-center py-5">
-            <i class="ri-folder-open-line ri-3x text-muted mb-3"></i> @* Changed from fas fa-folder-open *@
+            <i class="ri-folder-open-line ri-3x text-muted mb-3"></i>
             @if (isAdmin)
             {
                 <h4>No folders found</h4>
@@ -331,6 +331,7 @@
 
 @if (isAdmin)
 {
+    @* Modal for single folder archive/activate *@
     <div class="modal fade" id="confirmFolderActionModal" tabindex="-1" aria-labelledby="confirmFolderActionModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -352,6 +353,26 @@
             </div>
         </div>
     </div>
+
+    @* NEW: Modal for bulk actions confirmation *@
+    <div class="modal fade" id="confirmBulkActionModal" tabindex="-1" aria-labelledby="confirmBulkActionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmBulkActionModalLabel">Confirm Bulk Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to change the status of <strong id="selectedFolderCount"></strong> selected folder(s) to "<strong id="newBulkStatusText"></strong>"?
+                    <p class="mt-2 text-muted"><small>This action will apply to all selected folders.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmBulkActionButton">Apply Bulk Action</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 
@@ -367,117 +388,128 @@
         // --- JAVASCRIPT FOR BULK ACTIONS (Admin only) ---
         @if (isAdmin)
         {
-                    <text>
-                                $(document).ready(function() {
-                                    const selectAllFolders = $('#selectAllFolders');
-                                    const folderCheckboxes = $('.folder-checkbox');
-                                    const applyBulkActionBtn = $('#applyBulkAction');
-                                    const bulkActionForm = $('#bulkActionForm');
-                                    const newStatusSelect = $('#newStatus');
+            <text>
+                $(document).ready(function() {
+                    const selectAllFolders = $('#selectAllFolders');
+                    const folderCheckboxes = $('.folder-checkbox');
+                    const applyBulkActionBtn = $('#applyBulkAction');
+                    const bulkActionForm = $('#bulkActionForm');
+                    const newStatusSelect = $('#newStatus');
+                    const confirmBulkActionModal = $('#confirmBulkActionModal');
+                    const confirmBulkActionButton = $('#confirmBulkActionButton');
 
-                                    function toggleApplyButton() {
-                                        const anyChecked = folderCheckboxes.is(':checked');
-                                        const statusSelected = newStatusSelect.val() !== '';
-                                        applyBulkActionBtn.prop('disabled', !(anyChecked && statusSelected));
-                                    }
+                    function toggleApplyButton() {
+                        const anyChecked = folderCheckboxes.is(':checked');
+                        const statusSelected = newStatusSelect.val() !== '';
+                        applyBulkActionBtn.prop('disabled', !(anyChecked && statusSelected));
+                    }
 
-                                    selectAllFolders.on('change', function() {
-                                        folderCheckboxes.prop('checked', $(this).prop('checked'));
-                                        toggleApplyButton();
-                                    });
+                    selectAllFolders.on('change', function() {
+                        folderCheckboxes.prop('checked', $(this).prop('checked'));
+                        toggleApplyButton();
+                    });
 
-                                    folderCheckboxes.on('change', function() {
-                                        if (!$(this).prop('checked')) {
-                                            selectAllFolders.prop('checked', false);
-                                        } else if (folderCheckboxes.length === folderCheckboxes.filter(':checked').length) {
-                                            selectAllFolders.prop('checked', true);
-                                        }
-                                        toggleApplyButton();
-                                    });
+                    folderCheckboxes.on('change', function() {
+                        if (!$(this).prop('checked')) {
+                            selectAllFolders.prop('checked', false);
+                        } else if (folderCheckboxes.length === folderCheckboxes.filter(':checked').length) {
+                            selectAllFolders.prop('checked', true);
+                        }
+                        toggleApplyButton();
+                    });
 
-                                    newStatusSelect.on('change', toggleApplyButton);
+                    newStatusSelect.on('change', toggleApplyButton);
 
-                                    // Initial check on page load
-                                    toggleApplyButton();
+                    // Handle "Apply" button click to show the confirmation modal
+                    applyBulkActionBtn.on('click', function(e) {
+                        const selectedIds = folderCheckboxes.filter(':checked').map(function() {
+                            return $(this).val();
+                        }).get();
+                        const selectedStatusText = newStatusSelect.find('option:selected').text();
+                        const newStatusValue = newStatusSelect.val();
 
-                                    bulkActionForm.on('submit', function(e) {
-                                        const selectedIds = folderCheckboxes.filter(':checked').map(function() {
-                                            return $(this).val();
-                                        }).get();
+                        if (selectedIds.length === 0) {
+                            alert('Please select at least one folder.');
+                            e.preventDefault();
+                            return;
+                        }
 
-                                        if (selectedIds.length === 0) {
-                                            alert('Please select at least one folder.');
-                                            e.preventDefault();
-                                            return false;
-                                        }
+                        if (newStatusValue === '') {
+                            alert('Please select a status to apply.');
+                            e.preventDefault();
+                            return;
+                        }
 
-                                        if (newStatusSelect.val() === '') {
-                                            alert('Please select a status to apply.');
-                                            e.preventDefault();
-                                            return false;
-                                        }
+                        // Populate the modal content
+                        confirmBulkActionModal.find('#selectedFolderCount').text(selectedIds.length);
+                        confirmBulkActionModal.find('#newBulkStatusText').text(selectedStatusText.replace('Change to ', '')); // Remove "Change to " from text
 
-                                        if (!confirm('Are you sure you want to change the status of ' + selectedIds.length + ' selected folder(s) to ' + newStatusSelect.val() + '?')) {
-                                            e.preventDefault();
-                                            return false;
-                                        }
+                        // Set the click handler for the final confirmation button in the modal
+                        confirmBulkActionButton.off('click').on('click', function() {
+                            // Before submitting the form, ensure hidden inputs for folderIds are present
+                            bulkActionForm.find('input[name="folderIds"]').remove(); // Remove old ones
 
-                                        // Remove any previously added hidden inputs to prevent duplicates on resubmission
-                                        bulkActionForm.find('input[name="folderIds"]').remove();
+                            selectedIds.forEach(function(id) {
+                                $('<input>').attr({
+                                    type: 'hidden',
+                                    name: 'folderIds',
+                                    value: id
+                                }).appendTo(bulkActionForm);
+                            });
 
-                                        // Add hidden input fields for each selected ID
-                                        selectedIds.forEach(function(id) {
-                                            $('<input>').attr({
-                                                type: 'hidden',
-                                                name: 'folderIds',
-                                                value: id
-                                            }).appendTo(bulkActionForm);
-                                        });
-                                    });
-                                });
-                    </text>
+                            // Submit the bulk action form
+                            bulkActionForm.submit();
+                        });
+
+                        confirmBulkActionModal.modal('show'); // Show the modal
+                    });
+
+                    // Initial check on page load
+                    toggleApplyButton();
+                });
+            </text>
         }
 
 
         // --- JAVASCRIPT FOR SINGLE FOLDER ARCHIVE/ACTIVATE ACTIONS (Admin only) ---
         @if (isAdmin)
         {
-                    <text>
-                                $(document).ready(function() {
-                                    const confirmFolderActionModal = document.getElementById('confirmFolderActionModal');
-                                    confirmFolderActionModal.addEventListener('show.bs.modal', function (event) {
-                                        const button = event.relatedTarget; // Button that triggered the modal
-                                        const folderId = button.getAttribute('data-folder-id');
-                                        const folderName = button.getAttribute('data-folder-name');
-                                        const actionType = button.getAttribute('data-action-type'); // 'archive' or 'activate'
+            <text>
+                $(document).ready(function() {
+                    const confirmFolderActionModal = document.getElementById('confirmFolderActionModal');
+                    confirmFolderActionModal.addEventListener('show.bs.modal', function (event) {
+                        const button = event.relatedTarget; // Button that triggered the modal
+                        const folderId = button.getAttribute('data-folder-id');
+                        const folderName = button.getAttribute('data-folder-name');
+                        const actionType = button.getAttribute('data-action-type'); // 'archive' or 'activate'
 
-                                        const modalActionMessage = confirmFolderActionModal.querySelector('#modalActionMessage');
-                                        const folderIdToActInput = confirmFolderActionModal.querySelector('#folderIdToAct');
-                                        const modalConfirmButton = confirmFolderActionModal.querySelector('#modalConfirmButton');
-                                        const folderActionForm = confirmFolderActionModal.querySelector('#folderActionForm');
-                                        const confirmFolderActionModalLabel = confirmFolderActionModal.querySelector('#confirmFolderActionModalLabel');
+                        const modalActionMessage = confirmFolderActionModal.querySelector('#modalActionMessage');
+                        const folderIdToActInput = confirmFolderActionModal.querySelector('#folderIdToAct');
+                        const modalConfirmButton = confirmFolderActionModal.querySelector('#modalConfirmButton');
+                        const folderActionForm = confirmFolderActionModal.querySelector('#folderActionForm');
+                        const confirmFolderActionModalLabel = confirmFolderActionModal.querySelector('#confirmFolderActionModalLabel');
 
 
-                                        folderIdToActInput.value = folderId;
+                        folderIdToActInput.value = folderId;
 
-                                        if (actionType === 'archive') {
-                                            confirmFolderActionModalLabel.textContent = 'Confirm Archive Folder';
-                                            modalActionMessage.innerHTML = `Are you sure you want to <strong>archive</strong> the folder "<strong class="text-danger">${folderName}</strong>"? This will move it to an archived status and may restrict certain operations.`;
-                                            modalConfirmButton.textContent = 'Archive Folder';
-                                            modalConfirmButton.classList.remove('btn-info');
-                                            modalConfirmButton.classList.add('btn-dark');
-                                            folderActionForm.setAttribute('action', '@Url.Action("ArchiveFolder")');
-                                        } else if (actionType === 'activate') {
-                                            confirmFolderActionModalLabel.textContent = 'Confirm Activate Folder';
-                                            modalActionMessage.innerHTML = `Are you sure you want to <strong>activate</strong> the folder "<strong class="text-info">${folderName}</strong>"? This will change its status back to active.`;
-                                            modalConfirmButton.textContent = 'Activate Folder';
-                                            modalConfirmButton.classList.remove('btn-dark');
-                                            modalConfirmButton.classList.add('btn-info');
-                                            folderActionForm.setAttribute('action', '@Url.Action("ActivateFolder")');
-                                        }
-                                    });
-                                });
-                    </text>
+                        if (actionType === 'archive') {
+                            confirmFolderActionModalLabel.textContent = 'Confirm Archive Folder';
+                            modalActionMessage.innerHTML = `Are you sure you want to <strong>archive</strong> the folder "<strong class="text-danger">${folderName}</strong>"? This will move it to an archived status and may restrict certain operations.`;
+                            modalConfirmButton.textContent = 'Archive Folder';
+                            modalConfirmButton.classList.remove('btn-info');
+                            modalConfirmButton.classList.add('btn-dark');
+                            folderActionForm.setAttribute('action', '@Url.Action("ArchiveFolder")');
+                        } else if (actionType === 'activate') {
+                            confirmFolderActionModalLabel.textContent = 'Confirm Activate Folder';
+                            modalActionMessage.innerHTML = `Are you sure you want to <strong>activate</strong> the folder "<strong class="text-info">${folderName}</strong>"? This will change its status back to active.`;
+                            modalConfirmButton.textContent = 'Activate Folder';
+                            modalConfirmButton.classList.remove('btn-dark');
+                            modalConfirmButton.classList.add('btn-info');
+                            folderActionForm.setAttribute('action', '@Url.Action("ActivateFolder")');
+                        }
+                    });
+                });
+            </text>
         }
 
 
