@@ -1,0 +1,46 @@
+@page
+@model PersonalDataModel
+@{
+	// Layout is set by _ViewStart.cshtml
+	ViewData["Title"] = "Personal Data";
+	ViewData["ActivePage"] = ManageNavPages.PersonalData; // Ensure this is set for nav highlighting
+}
+
+<div class="container-fluid mt-4">
+	<div class="row">
+		
+		<div class="col-lg-3 col-md-4 mb-4">
+			<h4 class="mb-3 text-primary">Account Settings</h4>
+			<partial name="_ManageNav" />
+		</div>
+
+		<div class="col-lg-9 col-md-8">
+			<h3 class="mb-4 display-6">@ViewData["Title"]</h3>
+
+			<div class="card shadow-sm border-0 rounded-lg">
+				<div class="card-header bg-white border-bottom py-3">
+					<h5 class="card-title mb-0">Manage Your Personal Data</h5>
+				</div>
+				<div class="card-body">
+					<p class="card-text text-muted">Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
+					<p class="card-text">
+						<strong class="text-danger">Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+					</p>
+
+					<div class="d-flex flex-column flex-md-row gap-3 mt-4">
+						<form id="download-data" asp-page="DownloadPersonalData" method="post" class="flex-grow-1">
+							<button class="btn btn-primary w-100 py-2 rounded-md shadow-sm" type="submit">Download Your Data</button>
+						</form>
+						<p class="flex-grow-1 mb-0">
+							<a id="delete" asp-page="DeletePersonalData" class="btn btn-danger w-100 py-2 rounded-md shadow-sm">Delete Account</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

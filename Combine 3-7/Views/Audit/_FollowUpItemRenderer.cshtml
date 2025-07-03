@@ -1,0 +1,195 @@
+@model AspnetCoreMvcFull.Models.ViewModels.FormItemViewModel
+@using AspnetCoreMvcFull.Models;
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    var followUpAuditItemDto = ViewData["FollowUpAuditItemDto"] as AspnetCoreMvcFull.Models.ViewModels.FollowUpAuditItemDto;
+
+    var loopIndex = ViewData["LoopIndex"] as int?;
+    var existingResponseValue = followUpAuditItemDto?.ExistingResponseValue;
+    var existingScoredValue = followUpAuditItemDto?.ExistingScoredValue;
+
+    var htmlFieldNamePrefix = ViewData["HtmlFieldNamePrefix"] as string ?? "";
+
+    var inputName = $"{htmlFieldNamePrefix}ResponseValue";
+
+    var inputId = $"{htmlFieldNamePrefix.Replace("[", "_").Replace("]", "_").Replace(".", "_")}_response_{Model.ItemId}_{(loopIndex.HasValue ? $"loop_{loopIndex.Value}" : "")}";
+
+    var maxScoreAttr = $"data-max-score=\"{(Model.MaxScore ?? 0)}\"";
+
+    // Split existingResponseValue into a list of selected options for checking
+    HashSet<string> existingSelectedOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    if (!string.IsNullOrEmpty(existingResponseValue))
+    {
+        // Assuming existing values might be stored as comma-separated or similar for multiple selections
+        foreach (var val in existingResponseValue.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            existingSelectedOptions.Add(val.Trim());
+        }
+    }
+
+    List<string> options = new List<string>();
+    if (!string.IsNullOrEmpty(Model.OptionsJson))
+    {
+        try
+        {
+            options = JsonSerializer.Deserialize<List<string>>(Model.OptionsJson) ?? new List<string>();
+        }
+        catch (JsonException ex)
+        {
+            Console.WriteLine($"JsonException in _FollowUpItemRenderer for item {Model.ItemId}. OptionsJson: '{Model.OptionsJson}' Error: {ex.Message}");
+            <p class="text-danger small mt-1">Error loading options for this item. Please contact support.</p>
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"General Exception in _FollowUpItemRenderer for item {Model.ItemId}: {ex.Message}");
+            <p class="text-danger small mt-1">An unexpected error occurred. Please contact support.</p>
+        }
+    }
+}
+
+<div class="mb-3">
+    <label for="@inputId" class="form-label">
+        @Model.Question
+        @if (Model.IsRequired)
+        {
+            <span class="text-danger">*</span>
+        }
+        @if (Model.MaxScore.HasValue)
+        {
+            <span class="text-primary small">(Max Score: @Model.MaxScore)</span>
+        }
+    </label>
+
+    @* Display previous audit score and response value for context *@
+    @if (followUpAuditItemDto != null)
+    {
+        <div class="alert alert-secondary small py-2 px-3 mt-2 mb-3">
+            <i class="fas fa-history me-2"></i>
+            <strong>Previous:</strong>
+            @if (existingResponseValue != null)
+            {
+                <span>Value: "@existingResponseValue"</span>
+            }
+            @if (existingScoredValue.HasValue)
+            {
+                <span class="ms-3">Score: @existingScoredValue / @Model.MaxScore</span>
+            }
+            else if (Model.MaxScore.HasValue && !existingScoredValue.HasValue)
+            {
+                <span class="ms-3">Score: N/A / @Model.MaxScore (Non-scoreable or not scored)</span>
+            }
+        </div>
+    }
+
+    @switch (Model.ItemType)
+    {
+        case ItemType.Text:
+            <input type="text" id="@inputId" name="@inputName" class="form-control" value="@existingResponseValue" @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+            break;
+
+        case ItemType.Number:
+            <input type="number"
+                   id="@inputId"
+                   name="@inputName"
+                   class="form-control"
+                   value="@existingResponseValue"
+                   @(Model.IsRequired ? "required" : "")
+                   min="0"
+                   max="@(Model.MaxScore ?? int.MaxValue)"
+                   @maxScoreAttr />
+            break;
+
+        case ItemType.Textarea:
+            <textarea id="@inputId" name="@inputName" class="form-control" rows="3" @(Model.IsRequired ? "required" : "") @maxScoreAttr>@existingResponseValue</textarea>
+            break;
+
+        case ItemType.Checkbox:
+            List<string> checkboxOptions = new List<string>();
+            if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                try
+                {
+                    checkboxOptions = JsonSerializer.Deserialize<List<string>>(Model.OptionsJson) ?? new List<string>();
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"JsonException parsing OptionsJson for checkbox {Model.ItemId}: {ex.Message}");
+                    // Fallback to empty list if parsing fails
+                }
+            }
+
+            @if (checkboxOptions.Any())
+            {
+                @foreach (var optionValue in checkboxOptions)
+                {
+                    var currentCheckboxId = $"{inputId}_{optionValue?.Replace(" ", "_")}";
+                    bool isChecked = existingSelectedOptions.Contains(optionValue);
+
+                    <div class="form-check">
+                        <input type="checkbox" id="@currentCheckboxId" name="@inputName" class="form-check-input"
+                               value="@optionValue" @(isChecked ? "checked" : null)
+                               @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+                        <label class="form-check-label" for="@currentCheckboxId">
+                            @optionValue
+                        </label>
+                    </div>
+                }
+            }
+            else // Fallback to a single "Yes" checkbox if no options are defined
+            {
+                bool isChecked = existingResponseValue?.Equals("true", StringComparison.OrdinalIgnoreCase) == true || existingResponseValue?.Equals("on", StringComparison.OrdinalIgnoreCase) == true;
+                <div class="form-check">
+                    <input type="checkbox" id="@inputId" name="@inputName" value="true" class="form-check-input" @(isChecked ? "checked" : null) @maxScoreAttr />
+                    <label class="form-check-label" for="@inputId">
+                        Yes
+                    </label>
+                </div>
+                <input type="hidden" name="@inputName" value="false" />
+            }
+            break;
+
+        case ItemType.Radio:
+            @foreach (var optionValue in options)
+            {
+                <div class="form-check">
+                    <input type="radio" name="@inputName" id="@(inputId)_@optionValue?.Replace(" ", "_")" value="@optionValue" class="form-check-input" @(optionValue?.Equals(existingResponseValue, StringComparison.OrdinalIgnoreCase) == true ? "checked" : null) data-score="@(Model.MaxScore ?? 0)" @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+                    <label class="form-check-label" for="@(inputId)_@optionValue?.Replace(" ", "_")">@optionValue</label>
+                </div>
+            }
+            break;
+
+        case ItemType.Dropdown:
+            <select id="@inputId" name="@inputName" class="form-select" @(Model.IsRequired ? "required" : "") @maxScoreAttr>
+                <option value="">Select an option...</option>
+                @foreach (var optionValue in options)
+                {
+                    <option value="@optionValue" selected="@(optionValue?.Equals(existingResponseValue, StringComparison.OrdinalIgnoreCase) == true)" data-score="@(Model.MaxScore ?? 0)">@optionValue</option>
+                }
+            </select>
+            break;
+
+        case ItemType.File:
+            <input type="file" id="@inputId" name="@inputName" class="form-control" @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+            @if (!string.IsNullOrEmpty(existingResponseValue))
+            {
+                <small class="text-muted">Existing file: <a href="@existingResponseValue" target="_blank">View File</a></small>
+            }
+            break;
+
+        case ItemType.Signature:
+            <div class="border border-2 border-dashed rounded p-4 text-center">
+                <i class="fas fa-signature fa-2x text-muted mb-2"></i>
+                <p class="text-muted mb-0">Signature Pad</p>
+                <small class="text-muted">Click to sign</small>
+                <input type="hidden" id="@inputId" name="@inputName" value="@existingResponseValue" @(Model.IsRequired ? "required" : "") @maxScoreAttr />
+            </div>
+            break;
+
+        default:
+            <p class="text-danger">Unknown Item Type: @Model.ItemType</p>
+            break;
+    }
+    @Html.ValidationMessage(inputName, new { @class = "text-danger" })
+</div>

@@ -1,0 +1,42 @@
+@model string // This model ("Auditor", "Outlet", "Verifier") is still useful for naming if you wish, but not for ViewData keys
+
+@{
+    // Retrieve ViewData using the exact keys passed from details.cshtml
+    string partialTitle = ViewData["PartialTitle"]?.ToString() ?? "Verification";
+    string signatoryName = ViewData["SignatoryName"]?.ToString() ?? "N/A"; // Default to N/A if not found
+    string signatoryDesignation = ViewData["SignatoryDesignation"]?.ToString() ?? "N/A"; // Default to N/A if not found
+    string signatoryDate = ViewData["SignatoryDate"]?.ToString() ?? "N/A"; // Default to N/A if not found
+    string existingSignatureData = ViewData["SignatureData"]?.ToString() ?? ""; // Directly get "SignatureData"
+}
+
+<div class="card mb-4 signature-section-card">
+    <div class="card-body">
+        <h5 class="mb-3">@partialTitle</h5>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Name:</label>
+            <p class="form-control-static">@signatoryName</p> 
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Designation:</label>
+            <p class="form-control-static">@signatoryDesignation</p> 
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Date:</label>
+            <p class="form-control-static">@signatoryDate</p> 
+        </div>
+
+        <div class="signature-display-container mt-3">
+            <label class="form-label fw-bold">Signature:</label>
+            @if (!string.IsNullOrEmpty(existingSignatureData))
+            {
+                <div class="mt-2 text-center">
+                    <img src="@existingSignatureData" alt="Signature for @signatoryName" class="img-fluid border" style="max-width: 100%; auto; display: block; margin: 0 auto; background-color: #fff;" />
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No signature provided.</p>
+            }
+        </div>
+    </div>
+</div>

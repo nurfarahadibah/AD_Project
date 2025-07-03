@@ -1,0 +1,39 @@
+@model string
+@{
+    string title = ViewData["PartialTitle"]?.ToString() ?? "Verification"; // Changed from "Title" to "PartialTitle" to match your main view
+    string signatureDataName = ViewData["SignatureDataName"]?.ToString() ?? $"{Model}SignatureData";
+    string existingSignatureData = ViewData[$"{signatureDataName}"]?.ToString() ?? "";
+}
+
+<div class="card mb-4 signature-section-card">
+    <div class="card-body">
+        <h5 class="mb-3">@title</h5>
+        <div class="mb-3">
+            <label class="form-label">Name:</label>
+            <input type="text" name="@(Model)Name" class="form-control" value="@(ViewData[$"{Model}Name"])" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Designation:</label>
+            <input type="text" name="@(Model)Designation" class="form-control" value="@(ViewData[$"{Model}Designation"])" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Date:</label>
+            <input type="date" name="@(Model)Date" class="form-control" value="@(ViewData[$"{Model}Date"])" />
+        </div>
+
+        <div class="signature-pad-container mt-3">
+            <label class="form-label">Signature:</label>
+            <canvas class="signature-pad-canvas border w-100" style="height: 200px;"></canvas>
+            <input type="hidden" name="@signatureDataName" value="@existingSignatureData" />
+            <button type="button" class="btn btn-outline-danger btn-sm mt-2 clear-signature-btn">Clear Signature</button>
+            @if (!string.IsNullOrEmpty(existingSignatureData))
+            {
+                <img src="@existingSignatureData" class="mt-2 existing-signature-img" style="max-width: 100%; height: auto;" />
+            }
+            else
+            {
+                <img src="" class="mt-2 existing-signature-img" style="max-width: 100%; height: auto; display: none;" /> @* Added display: none here *@
+            }
+        </div>
+    </div>
+</div>

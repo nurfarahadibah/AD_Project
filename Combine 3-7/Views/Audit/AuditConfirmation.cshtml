@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Audit Confirmation";
+}
+
+<div class="container mt-5">
+    <div class="card text-center">
+        <div class="card-header bg-success text-white">
+            <h4>Audit Submitted Successfully!</h4>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title mb-3">Thank you for completing the audit.</h5>
+            @if (ViewBag.AuditId != null)
+            {
+                <p class="card-text">Your audit record ID is: <strong>@ViewBag.AuditId</strong></p>
+            }
+            <hr />
+            <p class="card-text">
+                You can review the submitted audit details or return to the main list.
+            </p>
+            <a asp-controller="Audit" asp-action="Details" asp-route-id="@ViewBag.AuditId" class="btn btn-primary mt-3">View Audit Details</a>
+            <a asp-controller="Audit" asp-action="Index" class="btn btn-secondary mt-3">Return to Audit Instances</a>
+        </div>
+        <div class="card-footer text-muted">
+            Audit System
+        </div>
+    </div>
+</div>

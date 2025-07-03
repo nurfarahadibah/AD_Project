@@ -1,0 +1,204 @@
+@model AspnetCoreMvcFull.Models.FormItem
+@using AspnetCoreMvcFull.Models;
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    int? loopIndex = ViewData["LoopIndex"] as int?;
+    Dictionary<string, string> existingResponses = ViewData["ExistingResponses"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+
+    string inputName = Model.ItemId.ToString();
+    if (loopIndex.HasValue)
+    {
+        inputName = $"{Model.ItemId}_loop_{loopIndex.Value}";
+    }
+
+    string existingRawValue = existingResponses != null && existingResponses.ContainsKey(inputName)
+        ? existingResponses[inputName] : "";
+
+    HashSet<string> existingSelectedOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    if (!string.IsNullOrEmpty(existingRawValue))
+    {
+        foreach (var val in existingRawValue.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            existingSelectedOptions.Add(val.Trim());
+        }
+    }
+
+    string requiredAttribute = Model.IsRequired ? "required" : "";
+
+    // Define a keyword to identify signature fields
+    bool isSignatureField = Model.ItemType == ItemType.File &&
+                            (Model.Question.Contains("Signature", StringComparison.OrdinalIgnoreCase) ||
+                             Model.Question.Contains("Signed By", StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="form-group mb-3">
+    <label for="@inputName" class="form-label">
+        @Model.Question
+        @if (Model.MaxScore.HasValue && Model.MaxScore.Value > 0)
+        {
+            <span class="text-muted ms-2">(Max Score: @Model.MaxScore)</span>
+        }
+        @if (Model.IsRequired)
+        {
+            <span class="text-danger">*</span>
+        }
+    </label>
+
+    @switch (Model.ItemType)
+    {
+        case ItemType.Text:
+            <input type="text" id="@inputName" name="@inputName" class="form-control"
+                    value="@existingRawValue" @requiredAttribute
+                    data-max-score="@(Model.MaxScore ?? 0)" />
+            break;
+        case ItemType.Number:
+            <input type="number" id="@inputName" name="@inputName" class="form-control"
+                    value="@existingRawValue" @requiredAttribute
+                    data-max-score="@(Model.MaxScore ?? 0)" />
+            break;
+        case ItemType.Textarea:
+            <textarea id="@inputName" name="@inputName" class="form-control" rows="3"
+             @requiredAttribute data-max-score="@(Model.MaxScore ?? 0)">@existingRawValue</textarea>
+            break;
+        case ItemType.Checkbox:
+            List<string> checkboxOptions = new List<string>();
+            if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                try
+                {
+                    checkboxOptions = JsonSerializer.Deserialize<List<string>>(Model.OptionsJson) ?? new List<string>();
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"JsonException parsing OptionsJson for checkbox {Model.ItemId}: {ex.Message}");
+                    // Fallback to empty list if parsing fails
+                }
+            }
+
+            @if (checkboxOptions.Any())
+            {
+                foreach (var optionValue in checkboxOptions)
+                {
+                    var currentCheckboxId = $"{inputName}_{optionValue?.Replace(" ", "")}";
+                    bool isChecked = existingSelectedOptions.Contains(optionValue);
+
+                    <div class="form-check">
+                        <input type="checkbox" id="@currentCheckboxId" name="@inputName" class="form-check-input"
+                               value="@optionValue" @(isChecked ? "checked" : "")
+                               data-max-score="@(Model.MaxScore ?? 0)" @(Model.IsRequired ? "required" : "") />
+                        <label class="form-check-label" for="@currentCheckboxId">@optionValue</label>
+                    </div>
+                }
+            }
+            else // Fallback to a single "Yes" checkbox if no options are defined
+            {
+                bool isChecked = existingRawValue != null && (existingRawValue.Equals("true", StringComparison.OrdinalIgnoreCase) || existingRawValue.Equals("on", StringComparison.OrdinalIgnoreCase));
+                <div class="form-check">
+                    <input type="checkbox" id="@inputName" name="@inputName" class="form-check-input"
+                               value="true" @(isChecked ? "checked" : "")
+                               data-max-score="@(Model.MaxScore ?? 0)" @requiredAttribute />
+                    <label class="form-check-label" for="@inputName">Yes</label>
+                </div>
+            }
+            break;
+        case ItemType.Radio:
+        case ItemType.Dropdown:
+            List<string> options = new List<string>();
+            if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                try
+                {
+                    options = JsonSerializer.Deserialize<List<string>>(Model.OptionsJson) ?? new List<string>();
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"JsonException in _AuditItemRenderer for ItemId {Model.ItemId}. OptionsJson: '{Model.OptionsJson}' Error: {ex.Message}");
+                    <div class="alert alert-danger">Error loading options for this item. Please contact support.</div>
+                }
+            }
+
+            if (options != null && options.Any())
+            {
+                if (Model.ItemType == ItemType.Dropdown)
+                {
+                    <select id="@inputName" name="@inputName" class="form-select" @requiredAttribute data-max-score="@(Model.MaxScore ?? 0)">
+                    <option value="">-- Select an Option --</option>
+                        @foreach (var optionValue in options)
+                        {
+                            <option value="@optionValue" data-score="@(Model.MaxScore ?? 0)"
+                                    selected="@(existingRawValue == optionValue ? "selected" : null)">
+                                @optionValue
+                            </option>
+                        }
+                        </select>
+
+                }
+                else // Radio
+                {
+                    @foreach (var optionValue in options)
+                    {
+                        var radioId = $"{inputName}_{optionValue?.Replace(" ", "")}";
+                        <div class="form-check">
+                            <input type="radio" id="@radioId" name="@inputName" class="form-check-input"
+                                        value="@optionValue"
+                                        @(existingRawValue == optionValue ? "checked" : "") @requiredAttribute
+                                        data-score="@(Model.MaxScore ?? 0)"
+                                        data-max-score="@(Model.MaxScore ?? 0)" />
+                            <label class="form-check-label" for="@radioId">@optionValue</label>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="alert alert-warning">No options defined for this item.</div>
+            }
+            break;
+        case ItemType.File:
+            @if (isSignatureField) // NEW LOGIC FOR SIGNATURE PAD
+            {
+                <div class="signature-pad-container border rounded p-3" style="background-color: #f9f9f9;">
+                    <canvas id="signatureCanvas_@inputName" class="signature-pad-canvas border w-100" style="height: 150px; background-color: #fff;"></canvas>
+                    <div class="mt-2 text-end">
+                        <button type="button" class="btn btn-outline-secondary btn-sm clear-signature-btn" data-target-canvas="signatureCanvas_@inputName">Clear Signature</button>
+                    </div>
+                    <input type="hidden" id="@inputName" name="@inputName" value="@existingRawValue" @requiredAttribute data-max-score="@(Model.MaxScore ?? 0)" />
+                    @if (!string.IsNullOrWhiteSpace(existingRawValue))
+                    {
+                        <p class="mt-2">Existing Signature:</p>
+                        <img src="@existingRawValue" alt="Existing Signature" class="img-fluid border mt-2" style="max-width: 200px;" />
+                    }
+                </div>
+            }
+            else // Existing file upload logic
+            {
+                <input type="file" id="@inputName" name="@inputName" class="form-control" @requiredAttribute />
+                @if (!string.IsNullOrWhiteSpace(existingRawValue))
+                {
+                    <p class="mt-2">Existing file: <a href="@existingRawValue" target="_blank">View File</a></p>
+                }
+            }
+            break;
+        // The original ItemType.Signature case should now be removed or commented out
+        // as we are repurposing ItemType.File for signatures
+        /*
+        case ItemType.Signature:
+            <div class="border rounded p-3 text-center" style="min-height: 100px; background-color: #f9f9f9;">
+                <p class="text-muted">Signature Pad Placeholder</p>
+                @if (!string.IsNullOrWhiteSpace(existingRawValue))
+                {
+                    <p>Existing Signature: <a href="@existingRawValue" target="_blank">View Signature</a></p>
+                }
+            </div>
+            <input type="hidden" id="@inputName" name="@inputName" value="@existingRawValue" @requiredAttribute data-max-score="@(Model.MaxScore ?? 0)" />
+            break;
+        */
+        default:
+            <div class="alert alert-danger">Unsupported Item Type: @Model.ItemType</div>
+            break;
+    }
+
+    @Html.ValidationMessage(inputName, new { @class = "text-danger" })
+</div>

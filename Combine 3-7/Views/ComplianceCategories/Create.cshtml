@@ -1,0 +1,75 @@
+@model AspnetCoreMvcFull.Models.ViewModels.CreateComplianceCategoryViewModel
+
+@{
+	ViewData["Title"] = "Create Compliance Category";
+}
+
+<div class="card shadow-sm rounded-3">
+	@* Added consistent styling for the card *@
+	<div class="card-header bg-light py-3">
+		@* Added consistent styling for the header *@
+		<h5 class="card-title fw-bold text-dark mb-0">Create New Compliance Category</h5> @* Added consistent styling for the title *@
+	</div>
+	<div class="card-body p-4">
+		@* Added consistent padding for the body *@
+		<form asp-action="Create">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+			<div class="mb-3">
+				<label asp-for="Name" class="form-label"></label>
+				<input asp-for="Name" class="form-control" />
+				<span asp-validation-for="Name" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Code" class="form-label"></label>
+				<input asp-for="Code" class="form-control" />
+				<span asp-validation-for="Code" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Description" class="form-label"></label>
+				<textarea asp-for="Description" class="form-control" rows="3"></textarea>
+				<span asp-validation-for="Description" class="text-danger"></span>
+			</div>
+			<div class="mt-4">
+				<button type="submit" class="btn btn-primary me-2">
+					<i class="ri-save-line me-1"></i> Create @* Added Remix Icon for consistency *@
+				</button>
+				@* Changed from onclick="return confirm(...)" to Bootstrap modal attributes *@
+				<a href="#" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+					<i class="ri-close-circle-line me-1"></i> Cancel @* Added Remix Icon for consistency *@
+				</a>
+			</div>
+		</form>
+	</div>
+</div>
+
+@* --- NEW Bootstrap Modal for Cancel Confirmation --- *@
+<div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header bg-white text-dark">
+				@* Using a warning color for the header *@
+				<h5 class="modal-title" id="confirmCancelModalLabel">Confirm Cancellation</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to <strong>cancel creating this category</strong>?</p>
+				<p class="text-danger">All unsaved changes will be lost.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+					<i class="ri-close-line me-1"></i> Keep Editing
+				</button>
+				@* This button navigates to the Index page if confirmed *@
+				<a asp-action="Index" class="btn btn-warning">
+					<i class="ri-logout-box-line me-1"></i> Yes, Cancel
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+	<partial name="_ValidationScriptsPartial" />
+@* Ensure Remix Icons CSS is loaded (if not already globally available in your _Layout.cshtml) *@
+	<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+}

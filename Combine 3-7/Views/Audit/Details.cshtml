@@ -1,0 +1,459 @@
+@model AspnetCoreMvcFull.Models.AuditInstance
+
+@{
+    ViewData["Title"] = "Audit Report";
+}
+
+<div class="container mt-4">
+    @* --- Top Section for Generate Report Button and Logo/SmartComply --- *@ 
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center non-print-content">
+            @* non-print-content to hide on print *@ 
+            <img src="~/img/backgrounds/HOLI.png" alt="Company Logo" class="me-2 rounded-circle" style="width: auto; height: 40px;">
+            <span class="text-secondary small fw-bold">SmartComply</span>
+        </div>
+        <button type="button" class="btn btn-primary btn-lg non-print-content" onclick="window.print()">
+            @* non-print-content to hide on print *@ 
+            <i class="fas fa-print me-2"></i> Generate Report
+        </button>
+    </div>
+
+    @* --- Report Main Title --- *@ 
+    <div class="text-center mb-4 report-main-title">
+        <h2 class="fw-bold mb-1">Audit Report For: @Model.FormName</h2>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center py-2 px-3 mb-5 border border-dark report-info-block">
+        <div class="text-start flex-grow-0">
+            <span class="fw-bold text-nowrap">Date :</span> <span class="text-nowrap">@Model.AuditDate.ToShortDateString()</span>
+        </div>
+        <div class="text-center flex-grow-1">
+            <span class="fw-bold text-nowrap">Day :</span> <span class="text-nowrap">@Model.AuditDate.DayOfWeek</span>
+        </div>
+        <div class="text-end flex-grow-0">
+            <span class="fw-bold text-nowrap">Time :</span> <span class="text-nowrap">@Model.AuditDate.ToShortTimeString()</span>
+        </div>
+    </div>
+
+    <hr class="mb-4" /> @* Line under the header information *@ 
+
+    @* --- Audit Summary Section (remaining details) --- *@ 
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Audit ID:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.AuditInstanceId)</dd>
+
+                <dt class="col-sm-4">Auditor:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.AuditorName)</dd> @* Assuming AuditorName is directly on Model or derived *@
+
+                <dt class="col-sm-4">Form Name:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.FormName)</dd>
+            </dl>
+        </div>
+        <div class="col-md-6">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Total Score:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.TotalScore) / @Html.DisplayFor(model => model.TotalMaxScore)</dd>
+
+                <dt class="col-sm-4">Percentage Score:</dt>
+                <dd class="col-sm-8">@Model.PercentageScore.ToString("F2")%</dd>
+
+                <dt class="col-sm-4">Tenant ID:</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.TenantId)</dd>
+
+                @* The Status display previously here is now removed as per instruction *@
+            </dl>
+        </div>
+    </div>
+
+
+    @if (Model.AuditResponses == null || !Model.AuditResponses.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            No detailed responses available for this audit.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col" style="width: 5%;">#</th>
+                        <th scope="col" style="width: 40%;">Question</th> @* Adjusted width after removing Status column *@
+                        <th scope="col" style="width: 30%;">Submitted Value</th> @* Adjusted width *@
+                        <th scope="col" style="width: 10%;">Score</th>
+                        <th scope="col" style="width: 15%;">Max Score</th> @* Adjusted width *@
+                        @* Status column removed *@
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        // Group responses by their FormItem's Section, then order items within each section
+                        var groupedResponses = Model.AuditResponses
+                        .Where(r => r.FormItem != null && r.FormItem.Section != null) // Ensure FormItem and Section are not null
+                        .GroupBy(r => r.FormItem.Section) // Group by the Section object
+                        .OrderBy(g => g.Key.Order); // Order groups by section order
+
+                        var globalResponseCount = 0; // Global counter for all responses across sections
+                    }
+
+                    @foreach (var sectionGroup in groupedResponses)
+                    {
+                        <tr class="table-secondary">
+                            @* Section Header Row *@
+                            <td colspan="5" class="fw-bold text-start py-2">
+                                @* Changed colspan from 6 to 5 *@
+                                @sectionGroup.Key.Order. (@sectionGroup.Key.Title)
+                                <small class="text-muted ms-2">@sectionGroup.Key.Description</small>
+                            </td>
+                        </tr>
+
+                        var orderedResponsesInGroup = sectionGroup.OrderBy(r => r.FormItem.Order).ThenBy(r => r.LoopIndex).ToList();
+
+                        @foreach (var response in orderedResponsesInGroup)
+                        {
+                            globalResponseCount++;
+                            <tr class="@((response.MaxPossibleScore.HasValue && response.ScoredValue < response.MaxPossibleScore.Value) ? "table-warning" : "")">
+                                <td>@globalResponseCount</td>
+                                <td>
+                                    @response.FormItemQuestion
+                                    @if (response.LoopIndex.HasValue)
+                                    {
+                                        <small class="text-muted">(Instance @(response.LoopIndex.Value + 1))</small>
+                                    }
+                                </td>
+                                <td>
+                                    @{
+                                        string currentDisplayValue = string.IsNullOrWhiteSpace(response.ResponseValue) ? "N/A" : response.ResponseValue;
+                                    }
+                                    @if (currentDisplayValue.Length > 100 && response.FormItem?.ItemType != AspnetCoreMvcFull.Models.ItemType.File && response.FormItem?.ItemType != AspnetCoreMvcFull.Models.ItemType.Signature)
+                                    {
+                                        <span>@(currentDisplayValue.Substring(0, 100) + "... (truncated)")</span>
+                                    }
+                                    else if (response.FormItem?.ItemType == AspnetCoreMvcFull.Models.ItemType.File || response.FormItem?.ItemType == AspnetCoreMvcFull.Models.ItemType.Signature)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(response.ResponseValue))
+                                        {
+                                            // Assuming ResponseValue holds the URL or base64 data
+                                            bool isImageFile = response.ResponseValue.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                                            response.ResponseValue.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                            response.ResponseValue.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                            response.ResponseValue.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
+                                            response.ResponseValue.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase) ||
+                                            response.ResponseValue.EndsWith(".webp", StringComparison.OrdinalIgnoreCase);
+
+                                            if (isImageFile)
+                                            {
+                                                <img src="@response.ResponseValue" alt="Attachment" style="max-width: 400px; max-height: 400px; object-fit: contain;" />
+                                            }
+                                            else
+                                            {
+                                                <a href="@response.ResponseValue" target="_blank">View File</a>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A (No attachment)</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>@currentDisplayValue</span>
+                                    }
+                                </td>
+                                <td>@response.ScoredValue</td>
+                                <td>@response.MaxPossibleScore</td>
+                                @* Status column removed *@
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+  
+    @* --- Verification Signatures Section (at the very end of the report) --- *@
+    <div class="mt-5 pt-4 border-top border-dark verification-signatures-section">
+        <h5 class="fw-bold mb-4 text-center">Verification</h5>
+
+        @{
+            // Define a flag to track if any verification signature is found
+            bool anyVerificationSignatureFound = false;
+        }
+
+        <div class="row"> @* Start a new row for the signature partials *@
+            @* Checked by: (Auditor/s) Signature *@
+            @if (!string.IsNullOrWhiteSpace(Model.CheckedBySignatureData))
+            {
+                anyVerificationSignatureFound = true;
+                <div class="col-md-4"> @* Each partial takes up 4 columns (1/3 of the row) *@
+                    @await Html.PartialAsync("_SignatureVerificationPartial", "Auditor", new ViewDataDictionary(ViewData)
+                    {
+                        { "PartialTitle", "Checked by: (Auditor/s)" },
+                        { "SignatoryName", Model.CheckedByName },
+                        { "SignatoryDesignation", Model.CheckedByDesignation },
+                        { "SignatoryDate", Model.CheckedByDate?.ToShortDateString() }, // Format date for display
+                        { "SignatureData", Model.CheckedBySignatureData }
+                    })
+                </div>
+            }
+
+            @* Acknowledged by: (Outlet) Signature *@
+            @if (!string.IsNullOrWhiteSpace(Model.AcknowledgedBySignatureData))
+            {
+                anyVerificationSignatureFound = true;
+                <div class="col-md-4"> @* Each partial takes up 4 columns (1/3 of the row) *@
+                    @await Html.PartialAsync("_SignatureVerificationPartial", "Outlet", new ViewDataDictionary(ViewData)
+                    {
+                        { "PartialTitle", "Acknowledged by: (Outlet)" },
+                        { "SignatoryName", Model.AcknowledgedByName },
+                        { "SignatoryDesignation", Model.AcknowledgedByDesignation },
+                        { "SignatoryDate", Model.AcknowledgedByDate?.ToShortDateString() }, // Format date for display
+                        { "SignatureData", Model.AcknowledgedBySignatureData }
+                    })
+                </div>
+            }
+
+            @* Verified by: Signature *@
+            @if (!string.IsNullOrWhiteSpace(Model.VerifiedBySignatureData))
+            {
+                anyVerificationSignatureFound = true;
+                <div class="col-md-4"> @* Each partial takes up 4 columns (1/3 of the row) *@
+                    @await Html.PartialAsync("_SignatureVerificationPartial", "Verifier", new ViewDataDictionary(ViewData)
+                    {
+                        { "PartialTitle", "Verified by:" },
+                        { "SignatoryName", Model.VerifiedByName },
+                        { "SignatoryDesignation", Model.VerifiedByDesignation },
+                        { "SignatoryDate", Model.VerifiedByDate?.ToShortDateString() }, // Format date for display
+                        { "SignatureData", Model.VerifiedBySignatureData }
+                    })
+                </div>
+            }
+        </div> @* End of the row for signature partials *@
+
+        @if (!anyVerificationSignatureFound)
+        {
+            <div class="alert alert-info text-center" role="alert">
+                No verification signatures were found for this audit.
+            </div>
+        }
+    </div>
+
+
+    <div class="mt-4 text-center non-print-content">
+        @* non-print-content to hide on print *@ 
+        <a asp-action="Index" class="btn btn-secondary me-2">Back to Audit Instances</a>
+        @{
+            // Check if ANY audit response has a partial score
+            bool anyPartialScores = Model.AuditResponses.Any(r => r.MaxPossibleScore.HasValue && r.ScoredValue.HasValue && r.ScoredValue.Value < r.MaxPossibleScore.Value);
+        }
+        @if (anyPartialScores)
+        {
+            <a asp-action="AddCorrectiveActions" asp-route-auditInstanceId="@Model.AuditInstanceId" class="btn btn-warning">Add Corrective Actions</a>
+        }
+    </div>
+</div>
+
+@section PageScripts {
+    <script>
+
+        // No client-side script necessary for this read-only view
+    </script>
+}
+
+<style>
+    /* Styles for print only */
+    @@media print {
+        /* Hide elements meant only for screen interaction */
+        .non-print-content, .breadcrumb, .navbar {
+            display: none !important;
+        }
+        /* Ensure logo and SmartComply text are visible on print and correctly positioned */
+        .d-flex.align-items-center.non-print-content { /* Target the div containing logo and SmartComply */
+            display: flex !important;
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            align-items: center; /* Ensure vertical alignment */
+        }
+
+        .report-main-title {
+            text-align: center;
+            margin-top: 0 !important; /* Adjust for top positioning */
+            margin-bottom: 1.5rem !important; /* Adjust spacing for print */
+            position: relative; /* For centering title relative to page */
+            width: 100%; /* Take full width */
+            padding-top: 1rem; /* Give space from logo/button */
+        }
+
+            .report-main-title h2 {
+                margin-bottom: 0.25rem !important; /* Reduce space between main titles */
+                color: #212529 !important; /* Ensure black for print */
+                font-size: 1.8em; /* Adjust font size for main title in print */
+            }
+
+            .report-main-title h3 {
+                color: #6c757d !important; /* Grey color for "SmartComply" on print */
+                font-size: 1.2em; /* Smaller font size */
+            }
+
+        .report-info-block {
+            border: 1px solid #000; /* Border for the date/day/time block */
+            padding: 0.5rem;
+            margin-bottom: 1.5rem !important; /* Adjust spacing for print */
+            justify-content: flex-start !important; /* Align content to the left */
+        }
+
+            .report-info-block span {
+                margin-right: 1rem !important; /* Add space between elements */
+            }
+
+            .report-info-block .text-nowrap {
+                white-space: nowrap !important; /* Ensure date/day/time don't wrap */
+            }
+        /* Adjust margins for content on print */
+        .container {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            width: 100% !important; /* Use full width for print */
+            max-width: none !important; /* Override bootstrap max-width */
+        }
+
+        h2, h4 {
+            margin-top: 1rem !important;
+        }
+
+        table {
+            page-break-inside: auto;
+            width: 100% !important;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tfoot {
+            display: table-footer-group;
+        }
+
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        thead th {
+            background-color: #f8f9fa !important; /* Light grey for header */
+            color: #212529 !important; /* Dark text for print */
+        }
+
+        .table-secondary td {
+            background-color: #e9ecef !important; /* Slightly lighter grey for section headers on print */
+            color: #212529 !important; /* Dark text for print */
+        }
+
+        .table-warning {
+            background-color: #fff3cd !important; /* Light yellow for print */
+        }
+
+        .badge {
+            display: inline-block; /* Ensure badges print correctly */
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+            color: #212529 !important; /* Ensure text is dark for print */
+        }
+
+            .badge.bg-success {
+                background-color: #d1e7dd !important;
+            }
+
+            .badge.bg-warning {
+                background-color: #ffc107 !important;
+            }
+            /* Use a solid yellow for warning */
+            .badge.bg-info {
+                background-color: #cff4fc !important;
+            }
+
+            .badge.bg-secondary {
+                background-color: #e2e6ea !important;
+            }
+
+            .badge.bg-light {
+                background-color: #f8f9fa !important;
+            }
+        /* Styles for images within the table on print */
+        td img {
+            max-width: 100% !important; /* Ensure images don't overflow table cells */
+            height: auto !important; /* Maintain aspect ratio */
+            display: block !important; /* Ensure it takes its own line */
+            margin: 0 auto !important; /* Center the image */
+            border: 1px solid #dee2e6; /* Add a subtle border */
+        }
+        /* Print specific styles for the attachments section */
+        .attachments-section {
+            page-break-before: always; /* Start a new page for attachments section */
+            margin-top: 3rem !important;
+            padding-top: 2rem !important;
+            border-top: 2px solid #000 !important;
+        }
+
+            .attachments-section h3 {
+                color: #212529 !important;
+                font-size: 1.6em;
+            }
+
+        .attachment-item {
+            border: 1px solid #dee2e6 !important;
+            padding: 1rem !important;
+            margin-bottom: 1.5rem !important;
+            background-color: #f8f9fa !important;
+        }
+
+            .attachment-item h4 {
+                color: #343a40 !important;
+                font-size: 1.2em;
+            }
+
+            .attachment-item img {
+                max-width: 100% !important;
+                height: auto !important;
+                border: 1px solid #dee2e6;
+                display: block;
+                margin: 0 auto;
+            }
+
+            .attachment-item a {
+                color: #007bff !important;
+                text-decoration: underline !important;
+            }
+        /* NEW: Print specific styles for Verification Signatures section */
+        .verification-signatures-section {
+            page-break-before: auto; /* Allow to flow after attachments if space, but prefer new page if distinct content */
+            margin-top: 3rem !important;
+            padding-top: 2rem !important;
+            border-top: 2px solid #000 !important;
+        }
+
+            .verification-signatures-section h3 {
+                color: #212529 !important;
+                font-size: 1.6em;
+            }
+    }
+</style>

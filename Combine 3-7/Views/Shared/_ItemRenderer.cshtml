@@ -1,0 +1,90 @@
+@model AspnetCoreMvcFull.Models.FormItem
+
+@{
+    var loopIndex = ViewData["LoopIndex"] as int?;
+    var fieldName = loopIndex.HasValue ? $"{Model.ItemId}_loop_{loopIndex}" : Model.ItemId.ToString();
+    var maxScoreAttr = Model.MaxScore.HasValue ? $"data-max-score=\"{Model.MaxScore}\"" : "";
+}
+
+<div class="mb-3">
+    <label class="form-label">
+        @Model.Question
+        @if (Model.IsRequired)
+        {
+            <span class="text-danger">*</span>
+        }
+        @if (Model.MaxScore.HasValue)
+        {
+            <span class="text-primary small">(Max Score: @Model.MaxScore)</span>
+        }
+    </label>
+
+    @switch (Model.ItemType)
+    {
+		case AspnetCoreMvcFull.Models.ItemType.Text:
+            <input type="text" name="@fieldName" class="form-control" @Html.Raw(maxScoreAttr) />
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Number:
+            <input type="number" name="@fieldName" class="form-control" @Html.Raw(maxScoreAttr) />
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Textarea:
+            <textarea name="@fieldName" class="form-control" rows="3" @Html.Raw(maxScoreAttr)></textarea>
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Checkbox:
+            @if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                var options = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(Model.OptionsJson);
+                @foreach (var option in options)
+                {
+                    <div class="form-check">
+                        <input type="checkbox" name="@fieldName" value="@option" class="form-check-input" @Html.Raw(maxScoreAttr) />
+                        <label class="form-check-label">@option</label>
+                    </div>
+                }
+            }
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Radio:
+            @if (!string.IsNullOrEmpty(Model.OptionsJson))
+            {
+                var options = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(Model.OptionsJson);
+                @foreach (var option in options)
+                {
+                    <div class="form-check">
+                        <input type="radio" name="@fieldName" value="@option" class="form-check-input" @Html.Raw(maxScoreAttr) />
+                        <label class="form-check-label">@option</label>
+                    </div>
+                }
+            }
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Dropdown:
+            <select name="@fieldName" class="form-select" @Html.Raw(maxScoreAttr)>
+                <option value="">Select an option...</option>
+                @if (!string.IsNullOrEmpty(Model.OptionsJson))
+                {
+                    var options = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(Model.OptionsJson);
+                    @foreach (var option in options)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                }
+            </select>
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.File:
+            <input type="file" name="@fieldName" class="form-control" @Html.Raw(maxScoreAttr) />
+            break;
+
+		case AspnetCoreMvcFull.Models.ItemType.Signature:
+            <div class="border border-2 border-dashed rounded p-4 text-center">
+                <i class="fas fa-signature fa-2x text-muted mb-2"></i>
+                <p class="text-muted mb-0">Signature Pad</p>
+                <small class="text-muted">Click to sign</small>
+            </div>
+            break;
+    }
+</div>

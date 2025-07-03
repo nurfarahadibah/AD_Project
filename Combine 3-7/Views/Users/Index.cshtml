@@ -1,0 +1,195 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.ViewModels.UserViewModels>
+
+@{
+	ViewData["Title"] = "Manage Users";
+}
+
+<div class="card shadow-sm rounded-3">
+	<div class="card-header d-flex justify-content-between align-items-center bg-light py-3">
+		<h5 class="card-title fw-bold text-dark mb-0">User Accounts</h5>
+		<a asp-action="Create" class="btn btn-primary shadow-sm">
+			<i class="fas fa-plus-circle me-2"></i> Create New User
+		</a>
+	</div>
+	<div class="card-body p-4">
+
+		@if (ViewBag.SuccessMessage != null)
+		{
+			<div class="alert alert-success alert-dismissible fade show" role="alert">
+				@ViewBag.SuccessMessage
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		}
+		@if (TempData["ErrorMessage"] != null)
+		{
+			<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				@TempData["ErrorMessage"]
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+		}
+
+		@* Filtering and Search Section *@
+		<div class="mb-4">
+			<form asp-action="Index" method="get" class="d-flex flex-wrap align-items-end gap-3">
+				<div class="flex-grow-1">
+					<label for="roleFilter" class="form-label mb-1">Filter by Role:</label>
+					<select name="roleFilter" id="roleFilter" asp-items="ViewBag.RolesForFilter" class="form-select shadow-sm">
+					</select>
+				</div>
+				<div class="flex-grow-1">
+					<label for="tenantFilter" class="form-label mb-1">Filter by Tenant:</label>
+					<select name="tenantFilter" id="tenantFilter" asp-items="ViewBag.TenantsForFilter" class="form-select shadow-sm">
+					</select>
+				</div>
+				<div class="flex-grow-2">
+					<label for="searchQuery" class="form-label mb-1">Search by Username:</label>
+					<input type="text" name="searchQuery" id="searchQuery" value="@ViewBag.CurrentSearchQuery" class="form-control shadow-sm" placeholder="Enter username..." />
+				</div>
+				<div class="d-flex gap-2">
+					<button type="submit" class="btn btn-secondary shadow-sm">
+						<i class="ri-filter-line me-1"></i> Apply Filters
+					</button>
+					<a asp-action="Index" class="btn btn-outline-secondary shadow-sm">
+						<i class="ri-refresh-line me-1"></i> Reset
+					</a>
+				</div>
+			</form>
+		</div>
+
+		@* NEW: Status Filter Tabs/Buttons *@
+		<div class="mb-4">
+			<ul class="nav nav-pills">
+				<li class="nav-item">
+					<a class="nav-link @(ViewBag.CurrentStatusFilter == "all" ? "active" : "")"
+					   asp-action="Index"
+					   asp-route-statusFilter="all"
+					   asp-route-roleFilter="@ViewBag.CurrentRoleFilter"
+					   asp-route-searchQuery="@ViewBag.CurrentSearchQuery"
+					   asp-route-tenantFilter="@ViewBag.CurrentTenantFilter">
+						All Users
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link @(ViewBag.CurrentStatusFilter == "active" ? "active" : "")"
+					   asp-action="Index"
+					   asp-route-statusFilter="active"
+					   asp-route-roleFilter="@ViewBag.CurrentRoleFilter"
+					   asp-route-searchQuery="@ViewBag.CurrentSearchQuery"
+					   asp-route-tenantFilter="@ViewBag.CurrentTenantFilter">
+						Active Users
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link @(ViewBag.CurrentStatusFilter == "inactive" ? "active" : "")"
+					   asp-action="Index"
+					   asp-route-statusFilter="inactive"
+					   asp-route-roleFilter="@ViewBag.CurrentRoleFilter"
+					   asp-route-searchQuery="@ViewBag.CurrentSearchQuery"
+					   asp-route-tenantFilter="@ViewBag.CurrentTenantFilter">
+						Inactive Users
+					</a>
+				</li>
+			</ul>
+		</div>
+
+
+
+		<div class="table-responsive">
+			<table id="usersTable" class="table table-striped table-hover w-100">
+				<thead>
+					<tr>
+						<th>@Html.DisplayNameFor(model => model.UserName)</th>
+						<th>@Html.DisplayNameFor(model => model.Email)</th>
+						<th>@Html.DisplayNameFor(model => model.Roles)</th>
+						<th>@Html.DisplayNameFor(model => model.TenantName)</th>
+						<th>@Html.DisplayNameFor(model => model.IsActive)</th>
+						<th class="text-center">Actions</th>
+					</tr>
+				</thead>
+				<tbody class="table-border-bottom-0">
+					@foreach (var item in Model)
+					{
+						<tr>
+							<td>@Html.DisplayFor(modelItem => item.UserName)</td>
+							<td>@Html.DisplayFor(modelItem => item.Email)</td>
+							<td>@Html.DisplayFor(modelItem => item.Roles)</td>
+							<td>@Html.DisplayFor(modelItem => item.TenantName)</td>
+							<td>
+								@* New: Display Status with a badge *@
+								<span class="badge @(item.IsActive ? "bg-success" : "bg-secondary")">
+									@(item.IsActive ? "Active" : "Inactive")
+								</span>
+							</td>
+							<td class="text-center">
+								@* Edit button: Disabled if user is inactive *@
+								<a asp-action="Edit" asp-route-id="@item.Id"
+								   class="btn btn-sm btn-icon btn-outline-secondary me-1 @(!item.IsActive? "disabled" : "")"
+								   title="Edit" aria-disabled="@(!item.IsActive)">
+									@* CORRECTED LINE *@
+									<i class="ri-edit-line"></i>
+								</a>
+								@* Delete button: Disabled if user is inactive *@
+								<a asp-action="Delete" asp-route-id="@item.Id"
+								   class="btn btn-sm btn-icon btn-outline-danger @(!item.IsActive ? "disabled" : "")"
+								   title="Delete" aria-disabled="@(!item.IsActive)">
+									<i class="ri-delete-bin-line"></i>
+								</a>
+								@* NEW: Toggle User Status Button *@
+								<form asp-action="ToggleUserStatus" method="post" class="d-inline ms-1">
+									<input type="hidden" name="id" value="@item.Id" />
+									<button type="submit"
+											class="btn btn-sm btn-icon @(item.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+											title="@(item.IsActive ? "Deactivate User" : "Activate User")"
+											onclick="return confirm('Are you sure you want to @(item.IsActive ? "deactivate" : "activate") user \'@item.UserName\'?');">
+										<i class="ri-@(item.IsActive ? "user-unfollow-line" : "user-follow-line")"></i>
+									</button>
+								</form>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+@* Remix Icons CSS (Ensure this link is included if not globally) *@
+	<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+@* Font Awesome (for plus-circle icon if still using) *@
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+@* Datatables CSS *@
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+@* jQuery (if not already loaded) - Datatables requires jQuery *@
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+@* Datatables JS *@
+	<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+	<script>
+		$(document).ready(function() {
+			// Initialize DataTables
+			$('#usersTable').DataTable({
+				"paging": true,        // Enable pagination
+				"searching": true,     // Enable search box
+				"ordering": true,      // Enable sorting on columns
+				"info": true,          // Display info about the table
+				"lengthChange": true,  // Allow changing number of entries per page
+				"pageLength": 10       // Default number of entries per page
+			});
+
+			// For Bootstrap 5 alerts to auto-dismiss or be manually dismissible
+			// You might already have this from Bootstrap JS bundle
+			var alertList = document.querySelectorAll('.alert')
+			alertList.forEach(function (alert) {
+				new bootstrap.Alert(alert)
+			})
+		});
+	</script>
+
+@* Ensure you have Bootstrap's JS bundle loaded for alerts to dismiss if not already global *@
+@* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> *@
+
+	<partial name="_ValidationScriptsPartial" />
+}
