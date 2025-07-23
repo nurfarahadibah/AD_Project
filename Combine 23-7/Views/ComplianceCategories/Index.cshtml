@@ -1,0 +1,188 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.ViewModels.ComplianceCategoryViewModel>
+
+@{
+	ViewData["Title"] = "Manage Compliance Categories";
+}
+
+<style>
+	/* Custom style for description cell to allow text wrapping */
+	.description-cell {
+		white-space: normal; /* Allows text to wrap to the next line */
+		word-wrap: break-word; /* Breaks long words if they don't fit */
+		/* You can optionally add a max-width if you want to limit the column's overall width */
+		/* max-width: 300px; */
+	}
+
+	/* Style for archived rows */
+	.archived-row {
+		color: #888; /* Grey out text */
+		font-style: italic;
+		/* You can also add text-decoration: line-through; if you prefer */
+	}
+</style>
+
+<div class="container-fluid">
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<h1 class="h3">Compliance Categories Dashboard</h1>
+		<a asp-action="Create" class="btn btn-primary">
+			<i class="ri-add-line me-2"></i> Create New Category
+		</a>
+	</div>
+
+	<div class="card shadow-sm rounded-3">
+		<div class="card-body p-4">
+			<div class="table-responsive">
+				<table id="complianceCategoriesTable" class="table table-striped table-hover w-100">
+					<thead>
+						<tr>
+							<th>@Html.DisplayNameFor(model => model.Name)</th>
+							<th>@Html.DisplayNameFor(model => model.Code)</th>
+							<th>@Html.DisplayNameFor(model => model.Description)</th>
+							<th>@Html.DisplayNameFor(model => model.Status)</th> @* NEW Status Column Header *@
+							<th class="text-center">Actions</th>
+						</tr>
+					</thead>
+					<tbody class="table-border-bottom-0">
+						@foreach (var item in Model)
+						{
+							<tr class="@(item.Status == 0 ? "archived-row" : "")">
+								@* Apply archived-row class conditionally *@
+								<td>@Html.DisplayFor(modelItem => item.Name)</td>
+								<td>@Html.DisplayFor(modelItem => item.Code)</td>
+								<td class="description-cell">@Html.DisplayFor(modelItem => item.Description)</td>
+								<td>
+									@(item.Status == 1 ? "Active" : "Archived") @* Display 'Active' or 'Archived' *@
+								</td>
+								<td class="text-center">
+									<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-icon btn-outline-secondary me-1" title="Edit">
+										<i class="ri-edit-line"></i>
+									</a>
+									@if (item.Status == 1) // If Active, show Archive button
+									{
+										<button type="button" class="btn btn-sm btn-icon btn-outline-warning" title="Archive"
+												data-bs-toggle="modal" data-bs-target="#confirmArchiveModal"
+												data-category-id="@item.Id" data-category-name="@item.Name">
+											<i class="ri-archive-line"></i> @* Archive Icon *@
+										</button>
+									}
+									else // If Archived, show Unarchive button
+									{
+										<button type="button" class="btn btn-sm btn-icon btn-outline-success" title="Unarchive"
+												data-bs-toggle="modal" data-bs-target="#confirmUnarchiveModal"
+												data-category-id="@item.Id" data-category-name="@item.Name">
+											<i class="ri-inbox-unarchive-line"></i> @* Unarchive Icon *@
+										</button>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+@* --- NEW Bootstrap Modal for Archive Confirmation --- *@
+<div class="modal fade" id="confirmArchiveModal" tabindex="-1" aria-labelledby="confirmArchiveModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header ">
+				<h5 class="modal-title" id="confirmArchiveModalLabel">Confirmation</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to <strong>archive</strong> Compliance Category '<strong id="archiveCategoryName"></strong>'?</p>
+				<p class="text-danger">Archiving will disable this category but not delete it. You can unarchive it later.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+					<i class="ri-close-line me-1"></i> Cancel
+				</button>
+				<form asp-action="Archive" method="post" style="display:inline;">
+					<input type="hidden" name="id" id="archiveCategoryId" />
+					<button type="submit" class="btn btn-danger">
+						<i class="ri-archive-line me-1"></i> Confirm Archive
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+@* --- NEW Bootstrap Modal for Unarchive Confirmation --- *@
+<div class="modal fade" id="confirmUnarchiveModal" tabindex="-1" aria-labelledby="confirmUnarchiveModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header ">
+				<h5 class="modal-title" id="confirmUnarchiveModalLabel">Confirmation</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to <strong>unarchive</strong> Compliance Category '<strong id="unarchiveCategoryName"></strong>'?</p>
+				<p>Unarchiving will make this category active again.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+					<i class="ri-close-line me-1"></i> Cancel
+				</button>
+				<form asp-action="Unarchive" method="post" style="display:inline;">
+					<input type="hidden" name="id" id="unarchiveCategoryId" />
+					<button type="submit" class="btn btn-danger">
+						<i class="ri-inbox-unarchive-line me-1"></i> Confirm Unarchive
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section PageScripts {
+@* Remix Icons CSS (Ensure this link is included if not globally) *@
+	<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
+@* Datatables CSS *@
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+@* jQuery (if not already loaded) - Datatables requires jQuery *@
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+@* Datatables JS *@
+	<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+	<script>
+		$(document).ready(function() {
+			// Initialize DataTables
+			$('#complianceCategoriesTable').DataTable({
+				"paging": true,      // Enable pagination
+				"searching": true,   // Enable search box
+				"ordering": true,    // Enable sorting on columns
+				"info": true,        // Display info about the table
+				"lengthChange": true, // Allow changing number of entries per page
+				"pageLength": 10     // Default number of entries per page
+			});
+
+			// JavaScript for Archive Modal
+			$('#confirmArchiveModal').on('show.bs.modal', function (event) {
+				var button = $(event.relatedTarget); // Button that triggered the modal
+				var categoryId = button.data('category-id'); // Extract info from data-* attributes
+				var categoryName = button.data('category-name');
+
+				var modal = $(this);
+				modal.find('#archiveCategoryName').text(categoryName);
+				modal.find('#archiveCategoryId').val(categoryId);
+			});
+
+			// JavaScript for Unarchive Modal
+			$('#confirmUnarchiveModal').on('show.bs.modal', function (event) {
+				var button = $(event.relatedTarget); // Button that triggered the modal
+				var categoryId = button.data('category-id'); // Extract info from data-* attributes
+				var categoryName = button.data('category-name');
+
+				var modal = $(this);
+				modal.find('#unarchiveCategoryName').text(categoryName);
+				modal.find('#unarchiveCategoryId').val(categoryId);
+			});
+		});
+	</script>
+
+	<partial name="_ValidationScriptsPartial" />
+}

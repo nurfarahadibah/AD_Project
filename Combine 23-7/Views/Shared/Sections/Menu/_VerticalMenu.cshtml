@@ -1,0 +1,197 @@
+@{
+	// TempData.Keep(); // Uncomment if you actively need TempData to persist across redirects
+	string? currentPage = ViewContext.HttpContext.Request.Path;
+	// No need for a userRole variable if using User.IsInRole() directly
+}
+
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+
+	<div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
+		@if (User.IsInRole("User") || User.IsInRole("Manager") || User.IsInRole("Admin"))
+		{
+
+			<a asp-controller="Dashboards" asp-action="Index" class="app-brand-link">
+				<span class="app-brand-logo demo me-1"> @await Html.PartialAsync("../_Partials/_Macros")</span>
+				<span class="app-brand-text demo menu-text fw-semibold ms-2">@TempData.Peek("appName")</span>
+			</a>
+		}
+
+		@if (User.IsInRole("SuperAdmin"))
+		{
+
+			<a asp-controller="SuperAdminDashboard" asp-action="Index" class="app-brand-link">
+				<span class="app-brand-logo demo me-1"> @await Html.PartialAsync("../_Partials/_Macros")</span>
+				<span class="app-brand-text demo menu-text fw-semibold ms-2">@TempData.Peek("appName")</span>
+			</a>
+		}
+
+		<a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+			<i class="menu-toggle-icon d-xl-block align-middle"></i>
+		</a>
+	</div>
+
+	<div class="menu-inner-shadow"></div>
+
+	<ul class="menu-inner py-1">
+
+		@if (User.IsInRole("Admin"))
+		{
+			<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active" : "")'>
+				<a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-home-smile-line"></i>
+					<div>Dashboard</div>
+				</a>
+			</li>
+			@* Added from Version 1 - Manage Compliance Category *@
+			<li class='menu-item@(currentPage.StartsWith("/ComplianceCategories") ? " active" : "")'>
+				<a asp-controller="ComplianceCategories" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-bookmark-2-line"></i>
+					<div>Compliance Category</div>
+				</a>
+			</li>
+
+			@* Using ri-file-list-line for Form Builder as it's more specific *@
+			<li class='menu-item@(currentPage.StartsWith("/FormBuilder") ? " active" : "")'>
+				@* Added 'open' for parent item when sub-items are active *@
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					@* Changed to menu-toggle for expandable sub-menu *@
+					<i class="menu-icon tf-icons ri-file-list-line"></i>
+					<div>Dynamic Form Builder</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/FormBuilder/Index" ? " active" : "")'>
+						<a asp-controller="FormBuilder" asp-action="Index" class="menu-link"><div>View Forms</div></a>
+					</li>
+					<li class='menu-item@(currentPage == "/FormBuilder/CreateForm" ? " active" : "")'>
+						<a asp-controller="FormBuilder" asp-action="CreateForm" class="menu-link"><div>Create Form</div></a>
+					</li>
+				</ul>
+			</li>
+
+			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
+				@* Added 'open' for parent item when sub-items are active *@
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					@* Changed to menu-toggle for expandable sub-menu *@
+					<i class="menu-icon tf-icons ri-folder-open-line"></i>
+					<div>Filing Repository</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/DocumentRepository/Index" ? " active" : "")'>
+						<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link"><div>View Folders</div></a>
+					</li>
+					<li class='menu-item@(currentPage == "/DocumentRepository/CreateFolder" ? " active" : "")'>
+						<a asp-controller="DocumentRepository" asp-action="CreateFolder" class="menu-link"><div>Create Folder</div></a>
+					</li>
+				</ul>
+			</li>
+
+			@* Inside each relevant role block (Admin, Manager, User, SuperAdmin) *@
+			<li class='menu-item@(currentPage.StartsWith("/Reporting") ? " active" : "")'>
+				<a asp-controller="Reporting" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-file-chart-line"></i> <div>Reports</div>
+				</a>
+			</li>
+
+		}
+		else if (User.IsInRole("Manager"))
+		{
+			<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active" : "")'>
+				<a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-home-smile-line"></i>
+					<div>Dashboard</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/Audit") ? " active" : "")'>
+				<a asp-controller="Audit" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-file-search-line"></i>
+					<div>Audit</div>
+				</a>
+			</li>
+			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
+				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-folder-open-line"></i>
+					<div>Filling Repository</div>
+				</a>
+			</li>
+
+			@* Inside each relevant role block (Admin, Manager, User, SuperAdmin) *@
+			<li class='menu-item@(currentPage.StartsWith("/Reporting") ? " active" : "")'>
+				<a asp-controller="Reporting" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-file-chart-line"></i> <div>Reports</div>
+				</a>
+			</li>
+
+		}
+		else if (User.IsInRole("User"))
+		{
+			<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards") ? " active" : "")'>
+				<a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-home-smile-line"></i>
+					<div>Dashboard</div>
+				</a>
+			</li>
+			@* Added from Version 2 - Audit Menu for User Role *@
+			<li class='menu-item@(currentPage.StartsWith("/Audit") ? " active" : "")'>
+				<a asp-controller="Audit" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-file-search-line"></i>
+					<div>Audit</div>
+				</a>
+			</li>
+
+			<li class='menu-item@(currentPage.StartsWith("/DocumentRepository") ? " active" : "")'>
+				<a asp-controller="DocumentRepository" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-folder-open-line"></i>
+					<div>Filling Repository</div>
+				</a>
+			</li>
+			
+
+
+			@* Inside each relevant role block (Admin, Manager, User, SuperAdmin) *@
+			<li class='menu-item@(currentPage.StartsWith("/Reporting") ? " active" : "")'>
+				<a asp-controller="Reporting" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-file-chart-line"></i> <div>Reports</div>
+				</a>
+			</li>
+
+
+
+		}
+		else if (User.IsInRole("SuperAdmin"))
+		{
+			<li class='menu-item@(currentPage.StartsWith("/SuperAdminDashboard") ? " active" : "")'>
+				<a asp-controller="SuperAdminDashboard" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-home-smile-line"></i>
+					<div>Dashboard</div>
+				</a>
+			</li>
+			@* User and Team Management (SuperAdmin specific) *@
+			<li class='menu-item@(currentPage.StartsWith("/Users") ? " active" : "")'>
+				<a asp-controller="Users" asp-action="Index" class="menu-link">
+					<i class="menu-icon tf-icons ri-user-line"></i>
+					<div>User List</div>
+				</a>
+			</li>
+			<li class="menu-item@(currentPage.StartsWith("/Roles") || currentPage.StartsWith("/Permissions") ? " active" : "")">
+				<a href="javascript:void(0);" class="menu-link menu-toggle">
+					<i class="menu-icon tf-icons ri-lock-2-line"></i>
+					<div data-i18n="Roles & Permissions">Roles & Permissions</div>
+				</a>
+				<ul class="menu-sub">
+					<li class='menu-item@(currentPage == "/Roles/Index" ? " active" : "")'>
+						<a asp-controller="Roles" asp-action="Index" class="menu-link">
+							<div data-i18n="Roles">Roles</div>
+						</a>
+					</li>
+					<li class='menu-item@(currentPage == "/Permissions/Index" ? " active" : "")'>
+						<a asp-controller="Permissions" asp-action="Index" class="menu-link">
+							<div data-i18n="Permissions">Permissions</div>
+						</a>
+					</li>
+
+				</ul>
+			</li>
+		}
+
+	</ul>
+</aside>

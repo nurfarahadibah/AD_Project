@@ -1,0 +1,378 @@
+@model AspnetCoreMvcFull.Models.ViewModels.FollowUpAuditViewModel
+
+@{
+    ViewData["Title"] = $"Follow Up Audit - {Model.FormName}";
+    Layout = "_ContentNavbarLayout"; // Ensure this matches your actual layout file name
+
+    // Calculate total max score only for items that will be displayed in this follow-up audit
+    var totalMaxScoreForFollowUp = Model.Sections
+        .SelectMany(s => s.Items) // Access items via the new Sections property
+        .Where(item => (item.ExistingScoredValue ?? 0) < (item.MaxScore ?? 0)) // Handled nullables in comparison
+        .Sum(item => item.MaxScore ?? 0);
+
+    // Assuming you have a way to pass existing signature data for follow-up audit,
+    // similar to how existingAuditResponses is used in the example you provided.
+    // For now, I'll use a placeholder Dictionary. You'll need to populate this
+    // from your ViewModel or ViewBag with actual existing signature data.
+    Dictionary<string, string> existingFollowUpSignatureData = ViewBag.ExistingFollowUpSignatureData ?? new Dictionary<string, string>();
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm rounded-3">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light py-3">
+                    <h5 class="card-title fw-bold text-dark mb-0">Follow Up Audit: @Model.FormName</h5>
+                    <a asp-action="Index" asp-controller="Audit" class="btn btn-secondary shadow-sm">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Audit List
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">@Model.FormDescription</p>
+
+                    @* Check if there are any items AT ALL that require follow-up across all sections *@
+                    @if (Model.Sections.Count == 0 || Model.Sections.All(s => s.Items.All(item => (item.ExistingScoredValue ?? 0) >= (item.MaxScore ?? 0)))) // Prefer comparing 'Count' to 0
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5 class="text-muted">No items require follow-up!</h5>
+                            <p class="text-muted">All questions in this form were scored fully in the previous audit.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <form id="auditForm" asp-action="SubmitFollowUpAudit" asp-controller="Audit" method="post" asp-antiforgery="true" enctype="multipart/form-data">
+                            <input type="hidden" name="OriginalAuditInstanceId" value="@Model.OriginalAuditInstanceId" />
+                            <input type="hidden" name="FormTypeId" value="@Model.FormTypeId" />
+
+                            @{
+                                int globalSubmittedItemIndex = 0;
+                            }
+                            @* Initialize a global index for submitted items. This is crucial for correct model binding. *@
+
+                            @* Loop through the sections in the ViewModel *@
+                            @for (int sectionIndex = 0; sectionIndex < Model.Sections.Count; sectionIndex++)
+                            {
+                                var sec = Model.Sections[sectionIndex];
+                                // Filter items within this specific section that require follow-up
+                                var sectionItemsToDisplay = sec.Items
+                                .Where(itemDto => (itemDto.ExistingScoredValue ?? 0) < (itemDto.MaxScore ?? 0))
+                                .OrderBy(itemDto => itemDto.FormItem.Order)
+                                .ToList();
+
+                                // Only display the section card if there are items within it that need follow-up
+                                if (sectionItemsToDisplay.Count > 0) // Prefer comparing 'Count' to 0
+                                {
+                                    <div class="card mb-4">
+                                        <div class="card-header">
+                                            <h4 class="mb-0">@sec.Title</h4>
+                                            <small class="text-muted">@sec.Description</small>
+                                        </div>
+                                        <div class="card-body">
+                                            @for (int itemDisplayIndex = 0; itemDisplayIndex < sectionItemsToDisplay.Count; itemDisplayIndex++)
+                                            {
+                                                var itemDto = sectionItemsToDisplay[itemDisplayIndex];
+                                                <div class="mb-4">
+                                                    @if (itemDto.HasLooping)
+                                                    {
+                                                        <div class="alert alert-info">
+                                                            <i class="fas fa-redo me-2"></i>
+                                                            <strong>Looping Item:</strong> This question repeats @itemDto.LoopCount times for each @itemDto.LoopLabel
+                                                        </div>
+
+                                                        @for (int i = 0; i < itemDto.LoopCount; i++)
+                                                        {
+                                                            // Wrap each looping item instance in a container div for JS to target
+                                                            <div class="border rounded p-3 mb-3 follow-up-item-container"
+                                                                 data-form-item-id="@itemDto.FormItemId"
+                                                                 data-item-type="@itemDto.FormItem.ItemType.ToString()"
+                                                                 data-max-score="@(itemDto.FormItem.MaxScore ?? 0)"
+                                                                 data-existing-scored-value="@(itemDto.ExistingScoredValue ?? 0)"
+                                                                 data-loop-label="@itemDto.LoopLabel"
+                                                                 data-loop-index="@i">
+                                                                <h6 class="text-primary">@itemDto.LoopLabel @(i + 1)</h6>
+                                                                @{
+                                                                    string currentSubmittedItemPrefix = $"Items[{globalSubmittedItemIndex}].";
+                                                                    @await Html.PartialAsync("_FollowUpItemRenderer", itemDto.FormItem, new ViewDataDictionary(ViewData)
+                                                                    {
+                                                                        { "LoopIndex", i },
+                                                                                { "FollowUpAuditItemDto", itemDto },
+                                                                                { "HtmlFieldNamePrefix", currentSubmittedItemPrefix }
+                                                                    })
+                                                                                ;
+                                        }
+                                        <input type="hidden" name="@(currentSubmittedItemPrefix)OriginalAuditResponseId" value="@itemDto.AuditResponseId" />
+                                        <input type="hidden" name="@(currentSubmittedItemPrefix)FormItemId" value="@itemDto.FormItemId" />
+                                        <input type="hidden" name="@(currentSubmittedItemPrefix)LoopIndex" value="@i" />
+                                    </div>
+                                    globalSubmittedItemIndex++;
+                                                                        }
+                                                                        }
+                                                                        else
+                                    {
+                                        // Wrap each non-looping item in a container div for JS to target
+                                        <div class="follow-up-item-container"
+                                             data-form-item-id="@itemDto.FormItemId"
+                                             data-item-type="@itemDto.FormItem.ItemType.ToString()"
+                                             data-max-score="@(itemDto.FormItem.MaxScore ?? 0)"
+                                             data-existing-scored-value="@(itemDto.ExistingScoredValue ?? 0)"
+                                             data-loop-index="@(itemDto.LoopIndex ?? -1)">
+                                            @{
+                                                string currentSubmittedItemPrefix = $"Items[{globalSubmittedItemIndex}].";
+                                                @await Html.PartialAsync("_FollowUpItemRenderer", itemDto.FormItem, new ViewDataDictionary(ViewData)
+                                                {
+                                                    { "FollowUpAuditItemDto", itemDto },
+                                                                                { "HtmlFieldNamePrefix", currentSubmittedItemPrefix }
+                                                })
+                                                                                ;
+                                            }
+                                            <input type="hidden" name="@(currentSubmittedItemPrefix)OriginalAuditResponseId" value="@itemDto.AuditResponseId" />
+                                            <input type="hidden" name="@(currentSubmittedItemPrefix)FormItemId" value="@itemDto.FormItemId" />
+                                            <input type="hidden" name="@(currentSubmittedItemPrefix)LoopIndex" value="@(itemDto.LoopIndex ?? -1)" />
+                                        </div>
+                                        globalSubmittedItemIndex++;
+                                    }
+                                </div>
+                                                                }
+                            </div>
+                        </div>
+                                                }
+                                                }
+
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="text-primary mb-3">Scoring Summary for Follow-up</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="h4 text-success" id="currentScore">0</div>
+                                            <small class="text-muted">Current Follow-up Score</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="h4 text-primary" id="maxScore">@totalMaxScoreForFollowUp</div>
+                                            <small class="text-muted">Maximum Possible Follow-up Score</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="h4 text-warning" id="percentage">0%</div>
+                                            <small class="text-muted">Follow-up Percentage</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        ---
+                        <h5 class="text-primary mt-4 mb-3">Verification / Signatures</h5>
+
+                        @* Auditor Signature *@
+                        @await Html.PartialAsync("_SignatureVerificationInputPartial", "Auditor", new ViewDataDictionary(ViewData)
+                                                {
+                            { "PartialTitle", "Checked by: (Auditor/s)" },
+                                                { "AuditorName", existingFollowUpSignatureData.GetValueOrDefault("AuditorName") },
+                                                { "AuditorDesignation", existingFollowUpSignatureData.GetValueOrDefault("AuditorDesignation") },
+                                                { "AuditorDate", existingFollowUpSignatureData.GetValueOrDefault("AuditorDate") },
+                                                { "SignatureDataName", "AuditorSignatureData" },
+                                                { "AuditorSignatureData", existingFollowUpSignatureData.GetValueOrDefault("AuditorSignatureData") } // Pass existing data
+                        })
+
+                        @* Outlet Signature *@
+                        @await Html.PartialAsync("_SignatureVerificationInputPartial", "Outlet", new ViewDataDictionary(ViewData)
+                                                {
+                            { "PartialTitle", "Acknowledged by: (Outlet)" },
+                                                { "OutletName", existingFollowUpSignatureData.GetValueOrDefault("OutletName") },
+                                                { "OutletDesignation", existingFollowUpSignatureData.GetValueOrDefault("OutletDesignation") },
+                                                { "OutletDate", existingFollowUpSignatureData.GetValueOrDefault("OutletDate") },
+                                                { "SignatureDataName", "OutletSignatureData" },
+                                                { "OutletSignatureData", existingFollowUpSignatureData.GetValueOrDefault("OutletSignatureData") } // Pass existing data
+                        })
+
+                        @* Verifier Signature *@
+                        @await Html.PartialAsync("_SignatureVerificationInputPartial", "Verifier", new ViewDataDictionary(ViewData)
+                                                {
+                            { "PartialTitle", "Verified by:" },
+                                                { "VerifierName", existingFollowUpSignatureData.GetValueOrDefault("VerifierName") },
+                                                { "VerifierDesignation", existingFollowUpSignatureData.GetValueOrDefault("VerifierDesignation") },
+                                                { "VerifierDate", existingFollowUpSignatureData.GetValueOrDefault("VerifierDate") },
+                                                { "SignatureDataName", "VerifierSignatureData" },
+                                                { "VerifierSignatureData", existingFollowUpSignatureData.GetValueOrDefault("VerifierSignatureData") } // Pass existing data
+                        })
+
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Submit Follow Up Audit
+                            </button>
+                        </div>
+                    </form>
+                                        }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <script>
+        function calculateScore() {
+            let currentScore = 0;
+            // Get max score from the DOM, as it's pre-calculated by the server
+            const maxScoreForFollowUp = parseFloat(document.getElementById('maxScore').textContent);
+
+            // Iterate over each item container for regular audit items
+            document.querySelectorAll('.follow-up-item-container').forEach(container => {
+                const itemType = container.getAttribute('data-item-type');
+                const itemMaxScore = parseFloat(container.getAttribute('data-max-score'));
+                const existingScoredValue = parseFloat(container.getAttribute('data-existing-scored-value')); // Score from previous audit
+
+                let inputElement = null;
+                // Try to find the primary input element for the item's response value
+                inputElement = container.querySelector('input[name$=".ResponseValue"], select[name$=".ResponseValue"], textarea[name$=".ResponseValue"]');
+
+                let scoredValueForThisItem = existingScoredValue; // Start with the score from the previous audit
+
+                if (inputElement) { // If a relevant input element is found
+                    const currentInputValue = inputElement.value;
+
+                    switch (itemType) {
+                        case 'Number':
+                            const numVal = parseFloat(currentInputValue) || 0;
+                            scoredValueForThisItem = Math.min(numVal, itemMaxScore);
+                            break;
+                        case 'Checkbox':
+                            if (inputElement.checked) {
+                                scoredValueForThisItem = itemMaxScore;
+                            } else {
+                                scoredValueForThisItem = 0;
+                            }
+                            break;
+                        case 'Radio':
+                            const radioGroupName = inputElement.name;
+                            const selectedRadio = container.querySelector(`input[type="radio"][name="${radioGroupName}"]:checked`);
+                            if (selectedRadio) {
+                                const radioScoreAttr = selectedRadio.getAttribute('data-score');
+                                scoredValueForThisItem = radioScoreAttr ? parseFloat(radioScoreAttr) : itemMaxScore;
+                            } else {
+                                scoredValueForThisItem = 0;
+                            }
+                            break;
+                        case 'Dropdown':
+                        case 'Select':
+                            const selectedOption = inputElement.options[inputElement.selectedIndex];
+                            if (selectedOption) {
+                                const optionScoreAttr = selectedOption.getAttribute('data-score');
+                                if (optionScoreAttr) {
+                                    scoredValueForThisItem = parseFloat(optionScoreAttr);
+                                } else if (inputElement.value) { // If an option is selected (has a value) but no specific score
+                                    scoredValueForThisItem = itemMaxScore;
+                                } else {
+                                    scoredValueForThisItem = 0; // No option selected (e.g., placeholder)
+                                }
+                            } else {
+                                scoredValueForThisItem = 0;
+                            }
+                            break;
+                        case 'Text':
+                        case 'TextArea':
+                            if (currentInputValue.trim() !== '') {
+                                scoredValueForThisItem = itemMaxScore; // Scored if any text is present
+                            } else {
+                                scoredValueForThisItem = 0;
+                            }
+                            break;
+                        case 'File':
+                            // For File inputs, check if a new file has been selected (files.length > 0)
+                            // or if there was an existing file (check existingScoredValue if it means a file was present)
+                            if (inputElement.files && inputElement.files.length > 0) {
+                                scoredValueForThisItem = itemMaxScore; // New file uploaded
+                            } else {
+                                // If no new file, retain the existing score for this item (if it had one)
+                                scoredValueForThisItem = existingScoredValue;
+                            }
+                            break;
+                        // Important: Signature fields are handled separately by the SignaturePad JS and
+                        // their hidden inputs are OUTSIDE the .follow-up-item-container loop.
+                        // Therefore, we won't try to find them here using .ResponseValue naming.
+                        // Instead, we will add their scores *after* this loop.
+                        default:
+                            scoredValueForThisItem = existingScoredValue; // For unhandled types, rely on existing score
+                            break;
+                    }
+                } else {
+                    // If no main input element found for a type, stick with the existing score
+                    scoredValueForThisItem = existingScoredValue;
+                }
+
+                currentScore += scoredValueForThisItem;
+            });
+
+            // --- Handle Signature Scores separately ---
+            // These are not inside the .follow-up-item-container loop
+            document.querySelectorAll('.signature-section-card').forEach(signatureCard => {
+                const hiddenSignatureInput = signatureCard.querySelector('input[type="hidden"][name$="SignatureData"]');
+                const signatureMaxScoreAttr = signatureCard.getAttribute('data-max-score'); // You might need to add this to your partial
+
+                let signatureScore = 0;
+                let signatureItemMaxScore = 0;
+
+                // Attempt to get the max score for this signature field
+                if (signatureMaxScoreAttr) {
+                    signatureItemMaxScore = parseFloat(signatureMaxScoreAttr);
+                } else {
+                    // Fallback: if data-max-score isn't explicitly on the card,
+                    // you might need a global default or retrieve it another way.
+                    // For now, let's assume it should be on the card for correct scoring.
+                    // Or, if it's considered a binary "present/not present" for scoring,
+                    // set a default max score (e.g., 1 or 100) or assume it's part of the general criteria.
+                }
+
+                if (hiddenSignatureInput && hiddenSignatureInput.value.trim() !== '') {
+                    // Signature is present (either new or existing)
+                    signatureScore = signatureItemMaxScore > 0 ? signatureItemMaxScore : 1; // Assign max score or a default if present
+                } else {
+                    // Signature is not present
+                    signatureScore = 0;
+                }
+                currentScore += signatureScore;
+            });
+
+
+            document.getElementById('currentScore').textContent = currentScore.toFixed(0);
+            let percentage = 0;
+            if (maxScoreForFollowUp > 0) {
+                percentage = (currentScore / maxScoreForFollowUp) * 100;
+            }
+            document.getElementById('percentage').textContent = percentage.toFixed(0) + '%';
+        }
+
+        // Recalculate score when inputs change (text input and selection changes)
+        // Listen to 'change' for checkboxes, radios, selects, files
+        // Listen to 'input' for text, number, textarea (for real-time typing updates)
+        document.addEventListener('change', calculateScore);
+        document.addEventListener('input', calculateScore);
+
+        // Also, recalculate score when a signature is drawn/cleared.
+        // This requires listening to the signature pad's events.
+        // We'll add this to the `DOMContentLoaded` block where signature pads are initialized.
+
+        // Initial score calculation on page load
+        document.addEventListener('DOMContentLoaded', calculateScore); // Keep this for initial load
+
+        // The SignaturePad initialization and handling should be in the DOMContentLoaded block
+        // where you're already doing it. Ensure that the `onEnd` and `onBegin` events
+        // of SignaturePad *also* trigger `calculateScore()` if you want real-time scoring
+        // as the user draws/clears signatures.
+
+        // Make sure your main view or `_FollowUpItemRenderer` places a `data-max-score`
+        // attribute on the `.signature-section-card` or on the hidden signature input
+        // if you want signatures to contribute to the score dynamically.
+        // For example:
+        // <div class="card mb-4 signature-section-card" data-max-score="10">
+        // (assuming a signature is worth 10 points)
+    </script>
+
+    <partial name="_ValidationScriptsPartial" />
+}
