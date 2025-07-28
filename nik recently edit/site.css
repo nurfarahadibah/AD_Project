@@ -1,0 +1,77 @@
+/* site.scss */
+
+/* Custom styles for sidebar background (Light Green) */
+.layout-menu.menu.bg-menu-theme {
+    background-color: #E8F5E9 !important; /* Light green background for the main sidebar */
+}
+
+/* Adjust text and icon colors for better contrast on light green sidebar background */
+.layout-menu .menu-link {
+    color: #4CAF50; /* Darker green for regular menu links */
+}
+
+.layout-menu .menu-link:hover {
+    color: #4CAF50; /* Keep darker green for hovered links */
+    background-color: rgba(0, 0, 0, 0.05); /* Slight transparent dark background for hover */
+}
+
+/* Make the sidebar's active menu item's background white, and adjust text/icon visibility */
+.layout-menu .menu-item.active > .menu-link {
+    background-color: #ffffff !important; /* Forces active item background to white */
+    color: #4CAF50 !important; /* Ensures active item text is the primary green for contrast on white */
+}
+
+.layout-menu .menu-icon {
+    color: #4CAF50; /* Darker green for icons */
+}
+
+/* Adjust the active menu item indicator bar color (if present) */
+.layout-menu .menu-item.active > .menu-link::before {
+    background-color: #4CAF50 !important; /* Indicator bar color (using your theme's primary green) */
+}
+
+/* Override the sidebar's inner shadow to blend with the light green background */
+.layout-menu .menu-inner-shadow {
+    background: linear-gradient(to bottom, #E8F5E9 5%, rgba(232, 245, 233, 0.75) 45%, rgba(232, 245, 233, 0.2) 80%, transparent) !important;
+}
+
+/* --- NEW STYLES FOR NAVBAR (Horizontal Top Bar) --- */
+/* Set Navbar background to Dark Green */
+.navbar.bg-white { /* Targeting the existing .bg-white class on your navbar */
+    background-color: #1A4314 !important; /* Dark green for the navbar background */
+}
+
+/* Navbar Brand (e.g., AspnetCoreMvcFull) color */
+.navbar.bg-white .navbar-brand {
+    color: #ffffff !important; /* White text for the brand on dark green background */
+}
+
+/* Navbar links default color */
+.navbar.bg-white .navbar-nav > .nav-item > .nav-link {
+    color: #cbd5e1 !important; /* Light grey for regular navbar links */
+}
+
+/* Navbar links on hover */
+.navbar.bg-white .navbar-nav > .nav-item > .nav-link:hover {
+    color: #ffffff !important; /* White for hovered navbar links */
+}
+
+/* Navbar active link background and text color */
+.navbar.bg-white .navbar-nav .nav-link.active {
+    background-color: #ffffff !important; /* White background for active navbar link */
+    color: #4CAF50 !important; /* Primary green text for active navbar link */
+}
+
+/* Adjust navbar toggler icon color for dark background */
+.navbar.bg-white .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='rgba(255, 255, 255, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>") !important;
+}
+
+/* Adjust other navbar elements if they inherit from parent and become unreadable */
+.navbar.bg-white .navbar-text {
+    color: #cbd5e1 !important; /* Light grey for navbar text */
+}
+
+.navbar.bg-white .navbar-text a {
+    color: #ffffff !important; /* White for links within navbar text */
+}
