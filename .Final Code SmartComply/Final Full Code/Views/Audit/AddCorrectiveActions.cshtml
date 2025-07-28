@@ -1,0 +1,163 @@
+@model AspnetCoreMvcFull.Models.AuditInstance
+
+@{
+    ViewData["Title"] = "Add Corrective Actions";
+    var itemsNeedingCorrection = ViewBag.ItemsNeedingCorrection as List<AspnetCoreMvcFull.Models.AuditResponse>;
+    var existingCorrectiveActions = ViewBag.ExistingCorrectiveActions as List<AspnetCoreMvcFull.Models.CorrectiveAction>;
+
+    // Calculate default overall due date (2 weeks from today)
+    DateTime defaultOverallDueDate = DateTime.Today.AddDays(14);
+    string defaultOverallDueDateString = defaultOverallDueDate.ToString("yyyy-MM-dd");
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Audit Instances</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.AuditInstanceId">Audit Details</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add Corrective Actions</li>
+        </ol>
+    </nav>
+
+    <h2>Add Corrective Actions for "@ViewBag.FormName" (Audit ID: @Model.AuditInstanceId)</h2>
+    <p class="text-muted">Below are items that did not achieve a full score. Please add corrective action notes.</p>
+    <hr />
+
+    @if (itemsNeedingCorrection == null || itemsNeedingCorrection.Count == 0) // Prefer comparing Count to 0
+    {
+        <div class="alert alert-success" role="alert">
+            All audit items achieved full marks! No corrective actions required for this audit.
+            <p><a asp-action="Details" asp-route-id="@Model.AuditInstanceId" class="btn btn-info btn-sm mt-2">Back to Audit Details</a></p>
+        </div>
+    }
+    else
+    {
+        <form id="correctiveActionsForm" asp-action="SaveCorrectiveActions" asp-controller="Audit" method="post">
+            <input type="hidden" name="auditInstanceId" value="@Model.AuditInstanceId" />
+
+            @{
+                var responseCount = 0; // Initialize outside the loop for correct indexing
+            }
+
+            @foreach (var response in itemsNeedingCorrection)
+            {
+                // Increment currentItemIndex here for consistent 0-based array indexing
+                var currentItemIndex = responseCount++;
+                var existingCa = existingCorrectiveActions?.FirstOrDefault(ca => ca.AuditResponseId == response.AuditResponseId);
+                string defaultNotes = existingCa?.CorrectiveActionNotes ?? "";
+
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">
+                            @response.FormItemQuestion
+                            @if (response.LoopIndex.HasValue)
+                            {
+                                <small class="text-muted">(Instance @(response.LoopIndex.Value + 1))</small>
+                            }
+                        </h5>
+                        <p class="card-text text-muted">
+                            <i class="fas fa-percent me-1"></i> Score: @response.ScoredValue / @response.MaxPossibleScore
+                        </p>
+
+                        <input type="hidden" name="items[@currentItemIndex].AuditResponseId" value="@response.AuditResponseId" />
+
+                        <div class="mb-3">
+                            <label for="notes_@response.AuditResponseId" class="form-label fw-bold">Corrective Action Notes:</label>
+                            <textarea class="form-control" id="notes_@response.AuditResponseId" name="items[@currentItemIndex].CorrectiveActionNotes" rows="3" placeholder="Enter corrective action details...">@defaultNotes</textarea>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex align-items-center justify-content-end mt-4 mb-4">
+                <label for="followUpDueDate" class="form-label me-3 mb-0 fw-bold">Follow Up Audit Due Date:</label>
+                <input type="date" id="followUpDueDate" name="overallDueDate" class="form-control w-auto me-4" value="@defaultOverallDueDateString" required />
+
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-save me-2"></i> Save Corrective Actions
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.AuditInstanceId" class="btn btn-secondary">
+                    <i class="fas fa-times-circle me-2"></i> Cancel
+                </a>
+            </div>
+        </form>
+    }
+</div>
+
+@section PageScripts {
+    <script>
+        document.getElementById('correctiveActionsForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const form = event.target;
+            const auditInstanceId = form.elements.auditInstanceId.value;
+            const overallDueDate = form.elements.overallDueDate.value; // Get the single overall due date
+
+            const items = [];
+
+            // Collect data from each card (representing an AuditResponse)
+            form.querySelectorAll('.card.mb-3.shadow-sm').forEach((card, index) => {
+                const auditResponseIdInput = card.querySelector(`input[name="items[${index}].AuditResponseId"]`);
+                const notesInput = card.querySelector(`textarea[name="items[${index}].CorrectiveActionNotes"]`);
+
+                if (auditResponseIdInput && notesInput) { // Ensure elements exist
+                    const auditResponseId = auditResponseIdInput.value;
+                    const notes = notesInput.value;
+
+                    // Add to items array regardless of whether notes are empty.
+                    // The backend will decide whether to save/update/delete based on content.
+                    items.push({
+                        AuditResponseId: parseInt(auditResponseId),
+                        CorrectiveActionNotes: notes.trim(), // Trim whitespace from notes
+                        DueDate: overallDueDate // Assign the single overall due date to each item
+                    });
+                }
+            });
+
+            // You might want to add a check here if NO items at all are submitted
+            // or if overallDueDate is empty, but "required" attribute handles the latter.
+            if (items.length === 0) {
+                 alert("No corrective action items were found to save.");
+                 return;
+            }
+
+
+            // Prepare FormData for submission
+            const formData = new FormData();
+            formData.append('auditInstanceId', auditInstanceId);
+            formData.append('jsonData', JSON.stringify(items)); // Stringify the array of items
+
+            // Send via fetch API
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value // Anti-forgery token
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Attempt to parse error message from response
+                    return response.text().then(text => {
+                        let errorMsg = text;
+                        try {
+                            const jsonError = JSON.parse(text);
+                            errorMsg = jsonError.message || JSON.stringify(jsonError);
+                        } catch (e) {
+                            // If it's not JSON, use plain text
+                        }
+                        return Promise.reject(new Error(errorMsg || `HTTP error! status: ${response.status}`));
+                    });
+                }
+                // Assuming success will result in a redirect (302)
+                // We'll manually redirect the browser as fetch doesn't follow 302s by default
+                // for programmatic navigation.
+                window.location.href = '@Url.Action("Details", "Audit", new { id = Model.AuditInstanceId })';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving corrective actions: ' + (error.message || "Unknown error"));
+            });
+        });
+    </script>
+}

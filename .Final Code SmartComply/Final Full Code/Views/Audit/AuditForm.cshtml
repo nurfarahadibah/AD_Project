@@ -1,0 +1,312 @@
+@model AspnetCoreMvcFull.Models.JenisForm
+@using AspnetCoreMvcFull.Models
+
+@{
+    ViewData["Title"] = Model.FormTypeId == 0 ? "Create New Audit Form" : $"Audit Form: {Model.Name}";
+    Layout = "_ContentNavbarLayout";
+    int? auditInstanceId = ViewBag.AuditInstanceId;
+    Dictionary<string, string> existingAuditResponses = ViewBag.ExistingAuditResponses ?? new Dictionary<string, string>();
+    bool isDraft = ViewBag.IsDraft ?? false;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="text-start">
+            <h2 class="mb-0">@Model.Name</h2>
+            <p class="text-muted">@Model.Description</p>
+        </div>
+        <div>
+            <a asp-controller="Audit" asp-action="ListFormTemplates" class="btn btn-secondary">Back To Form List</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <form id="auditForm" asp-action="SubmitAudit" asp-controller="Audit" method="post" enctype="multipart/form-data" asp-antiforgery="true">
+                        <input type="hidden" name="formTypeId" value="@Model.FormTypeId" />
+                        <input type="hidden" id="auditStatusInput" name="status" value="" />
+
+                        @if (auditInstanceId.HasValue)
+                        {
+                            <input type="hidden" name="auditInstanceId" value="@auditInstanceId.Value" />
+                        }
+
+                        @foreach (var sec in Model.Sections.OrderBy(s => s.Order))
+                        {
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">@sec.Title</h5>
+                                    <small class="text-muted">@sec.Description</small>
+                                </div>
+                                <div class="card-body">
+                                    @if (!sec.Items.Any())
+                                    {
+                                        <div class="text-center py-3">
+                                            <p class="text-muted">No items in this section</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var item in sec.Items.OrderBy(i => i.Order))
+                                        {
+                                            <div class="mb-4">
+                                                @if (item.HasLooping)
+                                                {
+                                                    <div class="alert alert-info">
+                                                        <i class="fas fa-redo me-2"></i>
+                                                        <strong>Looping Item:</strong> This question repeats @item.LoopCount times for each @item.LoopLabel
+                                                    </div>
+                                                    for (int i = 0; i < item.LoopCount; i++)
+                                                    {
+                                                        <div class="border rounded p-3 mb-3">
+                                                            <h6 class="text-primary">@item.LoopLabel @(i + 1)</h6>
+                                                            @await Html.PartialAsync("_AuditItemRenderer", item, new ViewDataDictionary(ViewData) { { "LoopIndex", i }, { "ExistingResponses", existingAuditResponses } })
+                                                        </div>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    @await Html.PartialAsync("_AuditItemRenderer", item, new ViewDataDictionary(ViewData) { { "ExistingResponses", existingAuditResponses } })
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h5 class="text-primary mb-3">Scoring Summary</h5>
+                                <div class="row">
+                                    <div class="col-md-4 text-center">
+                                        <div class="h4 text-success" id="currentScore">0</div>
+                                        <small class="text-muted">Current Score</small>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <div class="h4 text-primary" id="maxScore">@Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0)</div>
+                                        <small class="text-muted">Maximum Possible</small>
+                                    </div>
+                                    <div class="col-md-4 text-center">
+                                        <div class="h4 text-warning" id="percentage">0%</div>
+                                        <small class="text-muted">Percentage</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Auditor Signature *@
+                        @await Html.PartialAsync("_SignatureVerificationInputPartial", "Auditor", new ViewDataDictionary(ViewData)
+                        {
+                            { "PartialTitle", "Checked by: (Auditor/s)" }, // Changed from "Title"
+                                                { "AuditorName", existingAuditResponses.GetValueOrDefault("AuditorName") },
+                                                { "AuditorDesignation", existingAuditResponses.GetValueOrDefault("AuditorDesignation") },
+                                                { "AuditorDate", existingAuditResponses.GetValueOrDefault("AuditorDate") },
+                                                { "SignatureDataName", "AuditorSignatureData" },
+                                                { "AuditorSignatureData", existingAuditResponses.GetValueOrDefault("AuditorSignatureData") } // Pass existing data
+                        })
+
+                        @* Outlet Signature *@
+                        @await Html.PartialAsync("_SignatureVerificationInputPartial", "Outlet", new ViewDataDictionary(ViewData)
+                                                {
+                            { "PartialTitle", "Acknowledged by: (Outlet)" }, // Changed from "Title"
+                                                { "OutletName", existingAuditResponses.GetValueOrDefault("OutletName") },
+                                                { "OutletDesignation", existingAuditResponses.GetValueOrDefault("OutletDesignation") },
+                                                { "OutletDate", existingAuditResponses.GetValueOrDefault("OutletDate") },
+                                                { "SignatureDataName", "OutletSignatureData" },
+                                                { "OutletSignatureData", existingAuditResponses.GetValueOrDefault("OutletSignatureData") } // Pass existing data
+                        })
+
+                        @* Verifier Signature *@
+                        @await Html.PartialAsync("_SignatureVerificationInputPartial", "Verifier", new ViewDataDictionary(ViewData)
+                                                {
+                            { "PartialTitle", "Verified by:" }, // Changed from "Title"
+                                                { "VerifierName", existingAuditResponses.GetValueOrDefault("VerifierName") },
+                                                { "VerifierDesignation", existingAuditResponses.GetValueOrDefault("VerifierDesignation") },
+                                                { "VerifierDate", existingAuditResponses.GetValueOrDefault("VerifierDate") },
+                                                { "SignatureDataName", "VerifierSignatureData" },
+                                                { "VerifierSignatureData", existingAuditResponses.GetValueOrDefault("VerifierSignatureData") } // Pass existing data
+                        })
+
+                        @* The original signature section (if still needed, otherwise remove) *@
+                        @* <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="mb-3">Verification / Signature</h5>
+                                <div class="signature-pad-container">
+                                    <canvas class="signature-pad-canvas border w-100" style="height: 200px;"></canvas>
+                                    <input type="hidden" name="SignatureData" />
+                                    <button type="button" class="btn btn-outline-danger mt-2 clear-signature-btn">Clear Signature</button>
+                                    <img src="" class="mt-2" style="max-width: 100%; display: none;" />
+                                </div>
+                            </div>
+                        </div> *@
+
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" id="saveDraftBtn" class="btn btn-secondary btn-lg shadow-sm" data-status="Draft">
+                                <i class="fas fa-save me-2"></i> Save Audit
+                            </button>
+                            <button type="submit" id="submitAuditBtn" class="btn btn-primary btn-lg shadow-sm" data-status="Completed">
+                                <i class="fas fa-paper-plane me-2"></i> Submit Audit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+        function calculateScore() {
+            let currentScore = 0;
+            const maxScore = @Model.Sections.SelectMany(s => s.Items).Sum(i => i.MaxScore ?? 0);
+
+            document.querySelectorAll('#auditForm input[type="number"][data-max-score], #auditForm input[type="checkbox"][data-max-score], #auditForm input[type="radio"][data-max-score], #auditForm select[data-max-score], #auditForm textarea[data-max-score], #auditForm input[type="text"][data-max-score]').forEach(input => {
+                const itemMaxScore = parseFloat(input.getAttribute('data-max-score'));
+                if (isNaN(itemMaxScore)) return;
+
+                if (input.type === 'number') {
+                    currentScore += Math.min(parseFloat(input.value) || 0, itemMaxScore);
+                } else if (input.type === 'checkbox' && input.checked) {
+                    currentScore += itemMaxScore;
+                } else if (input.type === 'radio' && input.checked) {
+                    const radioScoreAttr = input.getAttribute('data-score');
+                    currentScore += radioScoreAttr ? parseFloat(radioScoreAttr) : itemMaxScore;
+                } else if (input.tagName === 'SELECT') {
+                    const selectedOption = input.options[input.selectedIndex];
+                    if (selectedOption) {
+                        const optionScoreAttr = selectedOption.getAttribute('data-score');
+                        currentScore += optionScoreAttr ? parseFloat(optionScoreAttr) : (input.value ? itemMaxScore : 0);
+                    }
+                } else if (input.tagName === 'TEXTAREA' || input.type === 'text') {
+                    if (input.value.trim() !== '') currentScore += itemMaxScore;
+                }
+            });
+
+            document.getElementById('currentScore').textContent = currentScore.toFixed(0);
+            document.getElementById('percentage').textContent = maxScore > 0 ? Math.round((currentScore / maxScore) * 100) + '%' : '0%';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const auditForm = document.getElementById('auditForm');
+            const auditStatusInput = document.getElementById('auditStatusInput');
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+            const submitAuditBtn = document.getElementById('submitAuditBtn');
+
+            // Signature logic for ALL signature pads
+            const signatureContainers = document.querySelectorAll('.signature-pad-container');
+            const signaturePads = []; // To store SignaturePad instances
+
+            signatureContainers.forEach(container => {
+                const canvas = container.querySelector('.signature-pad-canvas');
+                const hiddenInput = container.querySelector('input[type="hidden"]');
+                const clearButton = container.querySelector('.clear-signature-btn');
+                const imgDisplay = container.querySelector('.existing-signature-img'); // Select the new img tag
+
+                if (!canvas || !hiddenInput) return;
+
+                const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)' });
+                signaturePads.push({ pad: signaturePad, hiddenInput: hiddenInput, imgDisplay: imgDisplay }); // Store instances
+
+                // Load existing signature if present
+                if (hiddenInput.value) {
+                    try {
+                        signaturePad.fromDataURL(hiddenInput.value);
+                        if (imgDisplay) imgDisplay.style.display = 'none'; // Hide the img if signature loaded into canvas
+                    } catch (e) {
+                        console.error("Error loading signature:", e);
+                        signaturePad.clear(); // Clear canvas if data is invalid
+                        if (imgDisplay) imgDisplay.style.display = 'block'; // Show img if canvas couldn't load it
+                    }
+                } else {
+                    if (imgDisplay) imgDisplay.style.display = 'none'; // Hide img if no existing signature
+                }
+
+                if (clearButton) {
+                    clearButton.addEventListener('click', () => {
+                        signaturePad.clear();
+                        hiddenInput.value = '';
+                        if (imgDisplay) imgDisplay.style.display = 'none'; // Hide the img when cleared
+                    });
+                }
+
+                signaturePad.onEnd = function () {
+                    hiddenInput.value = signaturePad.isEmpty() ? '' : signaturePad.toDataURL();
+                    if (imgDisplay) imgDisplay.style.display = 'none'; // Hide the img if drawing starts
+                };
+
+                // Handle resize for each canvas
+                window.addEventListener('resize', () => {
+                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                    canvas.width = canvas.offsetWidth * ratio;
+                    canvas.height = canvas.offsetHeight * ratio;
+                    canvas.getContext('2d').scale(ratio, ratio);
+
+                    // Re-load signature data after resize to preserve drawing
+                    if (hiddenInput.value) {
+                        try {
+                            signaturePad.fromDataURL(hiddenInput.value);
+                            if (imgDisplay) imgDisplay.style.display = 'none';
+                        } catch (e) {
+                            console.error("Error re-loading signature after resize:", e);
+                            signaturePad.clear();
+                            if (imgDisplay) imgDisplay.style.display = 'block';
+                        }
+                    } else {
+                        signaturePad.clear();
+                        if (imgDisplay) imgDisplay.style.display = 'none';
+                    }
+                });
+            });
+
+            // Before form submission, ensure all signature data is captured
+            auditForm.addEventListener('submit', () => {
+                signaturePads.forEach(item => {
+                    item.hiddenInput.value = item.pad.isEmpty() ? '' : item.pad.toDataURL();
+                });
+            });
+
+            if (saveDraftBtn) {
+                saveDraftBtn.addEventListener('click', () => {
+                    auditStatusInput.value = saveDraftBtn.getAttribute('data-status');
+                    auditForm.submit();
+                });
+            }
+
+            if (submitAuditBtn) {
+                submitAuditBtn.addEventListener('click', function (event) {
+                    // Optional: Add validation for signatures if they are required for submission
+                    // For example:
+                    // let allSignaturesPresent = true;
+                    // signaturePads.forEach(item => {
+                    // if (item.pad.isEmpty() && item.hiddenInput.name.includes("Auditor")) { // Example: require Auditor signature
+                    // alert("Auditor signature is required!");
+                    // allSignaturesPresent = false;
+                    // event.preventDefault();
+                    // }
+                    // });
+
+                    // if (!auditForm.checkValidity() || !allSignaturesPresent) {
+                    // event.preventDefault();
+                    // auditForm.reportValidity();
+                    // You might want to add specific visual cues for missing signatures here
+                    // return;
+                    // }
+                    auditStatusInput.value = submitAuditBtn.getAttribute('data-status');
+                });
+            }
+
+            // Initial score calculation and re-calculation on input/change
+            auditForm.addEventListener('change', calculateScore);
+            auditForm.addEventListener('input', calculateScore);
+            calculateScore(); // Call once on load
+        });
+    </script>
+
+    <partial name="_ValidationScriptsPartial" />
+}

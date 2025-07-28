@@ -1,0 +1,180 @@
+@using System.Linq 
+@model AspnetCoreMvcFull.Models.ViewModels.DashboardViewModel
+
+@{
+	ViewData["Title"] = "SuperAdmin Dashboard";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
+<style>
+	/* Custom styles for enhanced aesthetics (copy from your existing Index.cshtml) */
+	.card {
+		border-radius: 0.75rem;
+		overflow: hidden;
+	}
+
+	.card-header {
+		border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+		background-color: #f8f9fa;
+		padding: 1rem 1.5rem;
+	}
+
+	.card-body {
+		padding: 1.5rem;
+	}
+
+	.icon-large {
+		font-size: 3rem;
+		line-height: 1;
+	}
+
+	.border-primary-gradient {
+		border-color: transparent !important;
+		border-image: linear-gradient(to right, #007bff, #6610f2) 1;
+		border-width: 2px;
+		border-style: solid;
+	}
+
+	.border-info-gradient {
+		border-color: transparent !important;
+		border-image: linear-gradient(to right, #17a2b8, #20c997) 1;
+		border-width: 2px;
+		border-style: solid;
+	}
+
+	.border-success-gradient {
+		border-color: transparent !important;
+		border-image: linear-gradient(to right, #28a745, #20c997) 1;
+		border-width: 2px;
+		border-style: solid;
+	}
+
+	.border-warning-gradient {
+		border-color: transparent !important;
+		border-image: linear-gradient(to right, #ffc107, #fd7e14) 1;
+		border-width: 2px;
+		border-style: solid;
+	}
+</style>
+
+<h2 class="mb-4">
+	<i class="ri-dashboard-line me-2"></i> SuperAdmin Dashboard
+</h2>
+
+<div class="row mb-4">
+	<div class="col-12">
+		<div class="alert alert-info shadow-sm border-0 rounded-3" role="alert">
+			<h4 class="alert-heading">Welcome, @ViewBag.Username!</h4>
+			<p>You are logged in as <strong>@ViewBag.Role</strong>.</p>
+			<p class="mb-0">This dashboard provides a comprehensive overview of the entire system.</p>
+		</div>
+	</div>
+</div>
+
+<h3 class="mt-5 mb-4"><i class="ri-settings-4-line me-2"></i> System Administration & Oversight</h3>
+<div class="row g-4 mb-5">
+	<div class="col-lg-3 col-md-6 col-sm-12">
+		<div class="card h-100 shadow border-primary-gradient">
+			<div class="card-body d-flex align-items-center">
+				<i class="ri-group-line icon-large text-primary me-3"></i>
+				<div>
+					<h6 class="card-subtitle text-muted text-uppercase mb-1">Total Users</h6>
+					<h4 class="card-title mb-0">@Model.TotalUsers</h4>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6 col-sm-12">
+		<div class="card h-100 shadow border-info-gradient">
+			<div class="card-body d-flex align-items-center">
+				<i class="ri-building-line icon-large text-info me-3"></i>
+				<div>
+					<h6 class="card-subtitle text-muted text-uppercase mb-1">Total Tenants</h6>
+					<h4 class="card-title mb-0">@Model.TotalTenants</h4>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6 col-sm-12">
+		<div class="card h-100 shadow border-success-gradient">
+			<div class="card-body d-flex align-items-center">
+				<i class="ri-folder-open-line icon-large text-success me-3"></i>
+				<div>
+					<h6 class="card-subtitle text-muted text-uppercase mb-1">Total System Folders</h6>
+					<h4 class="card-title mb-0">@Model.TotalComplianceFolders</h4>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6 col-sm-12">
+		<div class="card h-100 shadow border-warning-gradient">
+			<div class="card-body d-flex align-items-center">
+				<i class="ri-file-text-line icon-large text-warning me-3"></i>
+				<div>
+					<h6 class="card-subtitle text-muted text-uppercase mb-1">Total System Documents</h6>
+					<h4 class="card-title mb-0">@Model.TotalDocuments</h4>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row g-4 mb-5">
+	<div class="col-lg-6 col-md-12">
+		<div class="card shadow-sm h-100">
+			<div class="card-header">
+				<h5 class="card-title mb-0"><i class="ri-user-settings-line me-2"></i> User & Tenant Health</h5>
+			</div>
+			<div class="card-body">
+				<p class="mb-2">Total Users: <strong class="float-end">@Model.TotalUsers</strong></p>
+				<p class="mb-2 text-success">Active Users: <strong class="float-end">@Model.ActiveUsers</strong></p>
+				<hr />
+				<p class="mb-2">Total Tenants: <strong class="float-end">@Model.TotalTenants</strong></p>
+				<p class="mb-0 text-success">Active Tenants: <strong class="float-end">@Model.ActiveTenants</strong></p>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-6 col-md-12">
+		<div class="card shadow-sm h-100">
+			<div class="card-header">
+				<h5 class="card-title mb-0"><i class="ri-global-line me-2"></i> Overall Audit & CA Status</h5>
+			</div>
+			<div class="card-body">
+				<p class="mb-2">Total Audit Instances: <strong class="float-end">@Model.TotalAuditInstances</strong></p>
+				<p class="mb-2">Total Corrective Actions: <strong class="float-end">@Model.TotalCorrectiveActions</strong></p>
+				<hr />
+				<p class="mb-2 text-warning">Pending CAs: <strong class="float-end">@Model.PendingCorrectiveActions</strong></p>
+				<p class="mb-0 text-danger">Overdue CAs: <strong class="float-end">@Model.OverdueCorrectiveActions</strong></p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<h3 class="mt-5 mb-4"><i class="ri-dashboard-line me-2"></i> Quick Actions for SuperAdmin</h3>
+<div class="row g-4 mb-5">
+	<div class="col-lg-4 col-md-6 col-sm-12">
+		<div class="card h-100 shadow">
+			<div class="card-body d-flex flex-column align-items-start">
+				<i class="ri-group-fill icon-large text-primary mb-3"></i>
+				<h5 class="card-title mb-2">Manage All Users</h5>
+				<p class="card-text text-muted mb-3">View, edit, and deactivate user accounts across all tenants.</p>
+				<a asp-controller="Users" asp-action="Index" class="btn btn-primary mt-auto">
+					Go to User Management <i class="ri-arrow-right-line ms-1"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-4 col-md-6 col-sm-12">
+		<div class="card h-100 shadow">
+			<div class="card-body d-flex flex-column align-items-start">
+				<i class="ri-building-2-fill icon-large text-info mb-3"></i>
+				<h5 class="card-title mb-2">Manage Tenants</h5>
+				<p class="card-text text-muted mb-3">Create new tenants and oversee existing client organizations.</p>
+				<a asp-controller="Users" asp-action="CreateTenant" class="btn btn-info mt-auto">
+					Create New Tenant <i class="ri-add-line ms-1"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
