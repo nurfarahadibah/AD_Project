@@ -26,6 +26,6 @@ This project was developed using the **.NET MVC** framework and **SQL Server** a
 ## 🛠 Tech Stack
 
 - **Backend:** ASP.NET MVC
-- **Frontend:** Razor Views + Bootstrap
+- **Frontend:** Razor Views + HTML, CSS, JavaScript
 - **Database:** Microsoft SQL Server
 - **Tools:** Visual Studio, SQL Server Management Studio
