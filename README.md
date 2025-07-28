@@ -16,7 +16,7 @@ This project was developed using the **.NET MVC** framework and **SQL Server** a
 - **Authentication** (Register, Login, Reset Password)
 - **Dynamic Form Builder** (Create, Build, Preview, Configure Forms)
 - **Audit Management** (Create Audits, Add Corrective Action, Follow-ups)
-- **Compliance Framework Setup** (Admin Tools)
+- **Compliance Framework Setup** (Add Compliance)
 - **Dashboard & Reports** (Audit Summary, Export Reports)
 - **Document Repository** (Upload & Manage Files)
 - **User & Team Management** (Assign Roles, Manage Access)
